@@ -1,0 +1,4852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TransitAR - Seguridad Vial</title>
+
+    <!-- ============================================
+         LEAFLET: Libreria gratuita para mapas interactivos
+         Cargamos su CSS (estilos) y luego abajo su JS (logica)
+         desde un CDN (servidor publico que aloja librerias)
+         ============================================ -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        /* ============================================
+           ESTILOS GENERALES
+           Esto define cómo se ve toda la app.
+           "CSS" es el lenguaje que da estilo visual
+           (colores, tamaños, posiciones) al HTML.
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            /* Esto centra la app como si fuera un celular */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* El "contenedor" del celular */
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: #fff;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            border: 8px solid #1a1a2e;
+        }
+
+        /* En pantallas chicas (celular real), ocupa todo */
+        @media (max-width: 500px) {
+            .phone-frame {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
+        }
+
+        /* Cada "pantalla" de la app */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #fff;
+            animation: slideIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ============================================
+           COLORES DE LA APP
+           Usamos azul y verde que transmiten
+           seguridad y confianza
+           ============================================ */
+        :root {
+            --primary: #1565C0;
+            --primary-dark: #0D47A1;
+            --primary-light: #42A5F5;
+            --accent: #00C853;
+            --accent-dark: #00A844;
+            --danger: #E53935;
+            --warning: #FF9800;
+            --gray: #757575;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+        }
+
+        /* ============================================
+           BARRA SUPERIOR (Header)
+           ============================================ */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 16px 20px;
+            padding-top: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 90px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           BARRA INFERIOR (Navegacion)
+           ============================================ */
+        .bottom-nav {
+            display: flex;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            padding: 8px 0;
+            padding-bottom: 20px;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 4px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--gray);
+            font-size: 11px;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 22px;
+        }
+
+        /* ============================================
+           CONTENIDO SCROLLEABLE
+           ============================================ */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* ============================================
+           BOTONES
+           ============================================ */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+
+        .btn-primary:hover { transform: scale(0.98); }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #C62828);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-disabled {
+            background: #ccc;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           INPUTS (campos de texto)
+           ============================================ */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary);
+        }
+
+        /* ============================================
+           TARJETAS (Cards)
+           ============================================ */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+        }
+
+        /* ============================================
+           PANTALLA 1: BIENVENIDA
+           La primera pantalla que ve el usuario
+           ============================================ */
+        #welcome .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .app-logo {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .app-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .app-subtitle {
+            font-size: 16px;
+            opacity: 0.85;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .welcome-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .welcome-buttons .btn {
+            background: white;
+            color: var(--primary-dark);
+        }
+
+        .welcome-buttons .btn.register-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+
+        /* ============================================
+           PANTALLA 2: REGISTRO
+           ============================================ */
+        .role-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .role-card {
+            flex: 1;
+            padding: 20px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .role-card.selected {
+            border-color: var(--primary);
+            background: #E3F2FD;
+        }
+
+        .role-card .role-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .role-card .role-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .patente-section {
+            display: none;
+            background: #FFF8E1;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #FFE082;
+        }
+
+        .patente-section.visible {
+            display: block;
+        }
+
+        .patente-section .info-text {
+            font-size: 12px;
+            color: var(--warning);
+            margin-top: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        /* ============================================
+           PANTALLA 3: HOME (Pantalla principal)
+           ============================================ */
+        .user-welcome {
+            margin-bottom: 20px;
+        }
+
+        .user-welcome h2 {
+            font-size: 24px;
+            color: #1a1a2e;
+        }
+
+        .user-welcome p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .points-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 20px;
+            padding: 24px;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .points-banner::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .points-value {
+            font-size: 48px;
+            font-weight: 800;
+        }
+
+        .points-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .points-sublabel {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .action-card .action-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .action-card .action-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .action-card .action-desc {
+            font-size: 11px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           PANTALLA 4: DENUNCIAR INFRACCION
+           ============================================ */
+        .camera-area {
+            width: 100%;
+            height: 200px;
+            background: #1a1a2e;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 16px;
+            cursor: pointer;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-area .cam-icon {
+            font-size: 48px;
+        }
+
+        .camera-area span {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .camera-area.has-photo {
+            background: #4CAF50;
+        }
+
+        /* ============================================
+           MAPA REAL CON LEAFLET
+           Reemplazamos el area simulada por un mapa
+           interactivo de OpenStreetMap
+           ============================================ */
+        .map-container {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .map-container .map-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #report-map {
+            width: 100%;
+            height: 220px;
+            border-radius: 16px;
+            border: 2px solid #e0e0e0;
+            z-index: 1;
+        }
+
+        .map-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .map-status.waiting {
+            background: #FFF8E1;
+            color: #F57F17;
+            border: 1px solid #FFE082;
+        }
+
+        .map-status.located {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #A5D6A7;
+        }
+
+        .map-address {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .infraction-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .infraction-chip {
+            padding: 10px 16px;
+            border-radius: 25px;
+            border: 2px solid #e0e0e0;
+            font-size: 13px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            color: #555;
+        }
+
+        .infraction-chip.selected {
+            border-color: var(--primary);
+            background: #E3F2FD;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ============================================
+           PANTALLA 5: INICIAR VIAJE
+           ============================================ */
+        .trip-status {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .trip-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s;
+        }
+
+        .trip-circle.idle {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border: 4px solid var(--primary-light);
+        }
+
+        .trip-circle.active {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border: 4px solid var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,200,83,0.3); }
+            50% { box-shadow: 0 0 0 20px rgba(0,200,83,0); }
+        }
+
+        .trip-circle .trip-icon {
+            font-size: 60px;
+            margin-bottom: 8px;
+        }
+
+        .trip-circle .trip-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .trip-timer {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--accent-dark);
+            margin: 16px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .trip-info-card {
+            background: #FFF8E1;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: left;
+            border: 1px solid #FFE082;
+        }
+
+        .trip-info-card p {
+            font-size: 13px;
+            color: #F57F17;
+            line-height: 1.5;
+        }
+
+        .blocked-badge {
+            display: none;
+            background: var(--danger);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 12px auto;
+            width: fit-content;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .blocked-badge.visible {
+            display: flex;
+        }
+
+        /* ============================================
+           PANTALLA 6: PUNTOS
+           ============================================ */
+        .points-detail-card {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .points-detail-value {
+            font-size: 64px;
+            font-weight: 800;
+        }
+
+        .points-history-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+
+        .points-history-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .points-history-icon.earned {
+            background: #E8F5E9;
+        }
+
+        .points-history-icon.reported {
+            background: #E3F2FD;
+        }
+
+        .points-history-info {
+            flex: 1;
+        }
+
+        .points-history-info .title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .points-history-info .date {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .points-history-amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent-dark);
+        }
+
+        .ypf-banner {
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .ypf-banner .ypf-icon {
+            font-size: 40px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            border-radius: 14px;
+        }
+
+        .ypf-banner .ypf-text h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .ypf-banner .ypf-text p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .ypf-badge {
+            background: var(--warning);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 6px;
+        }
+
+        /* ============================================
+           PANTALLA 7: DEUDAS
+           ============================================ */
+        .patente-display {
+            background: #FFF9C4;
+            border: 2px solid #FDD835;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .patente-display .label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .patente-display .patente {
+            font-size: 28px;
+            font-weight: 800;
+            color: #333;
+            letter-spacing: 3px;
+            margin-top: 4px;
+        }
+
+        .patente-display .status {
+            font-size: 12px;
+            color: var(--accent-dark);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .debt-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            gap: 12px;
+        }
+
+        .debt-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #FFEBEE;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .debt-info {
+            flex: 1;
+        }
+
+        .debt-info .debt-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .debt-info .debt-date {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .debt-amount {
+            font-weight: 700;
+            color: var(--danger);
+            font-size: 15px;
+        }
+
+        .debt-pay-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .no-debts {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .no-debts .check-icon {
+            font-size: 60px;
+            margin-bottom: 12px;
+        }
+
+        /* ============================================
+           PANTALLA 8: CONTACTOS DE EMERGENCIA
+           ============================================ */
+        .emergency-contact {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            gap: 12px;
+        }
+
+        .emergency-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #E3F2FD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .emergency-info {
+            flex: 1;
+        }
+
+        .emergency-info .name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .emergency-info .phone {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .emergency-delete {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .add-contact-btn {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.2s;
+            background: transparent;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .add-contact-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* ============================================
+           MODAL / POPUP
+           ============================================ */
+        .modal-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+        }
+
+        .modal h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .modal p {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal .btn {
+            margin-bottom: 8px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 200;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            display: block;
+            animation: fadeInUp 0.3s ease, fadeOut 0.3s ease 2s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* ============================================
+           SISTEMA DE SEGUROS & NOTIFICACIONES
+           Notificacion push + pago inmediato de multa
+           ============================================ */
+
+        /* Notificacion push que aparece arriba */
+        .push-notification {
+            position: absolute;
+            top: -120px;
+            left: 12px;
+            right: 12px;
+            background: white;
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            z-index: 300;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid #eee;
+        }
+
+        .push-notification.visible {
+            top: 12px;
+        }
+
+        .push-notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #FFEBEE;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .push-notif-content {
+            flex: 1;
+        }
+
+        .push-notif-app {
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .push-notif-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin-top: 2px;
+        }
+
+        .push-notif-body {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .push-notif-time {
+            font-size: 11px;
+            color: #bbb;
+            flex-shrink: 0;
+        }
+
+        /* Pantalla de infraccion detectada */
+        .infraction-alert-banner {
+            background: linear-gradient(135deg, #E53935, #C62828);
+            border-radius: 20px;
+            padding: 24px;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .infraction-alert-banner::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .infraction-alert-banner .alert-icon {
+            font-size: 50px;
+            margin-bottom: 8px;
+        }
+
+        .infraction-alert-banner h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .infraction-alert-banner .alert-subtitle {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        /* Foto de la infraccion */
+        .infraction-photo {
+            width: 100%;
+            height: 140px;
+            background: #1a1a2e;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .infraction-photo .photo-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 10px 14px;
+        }
+
+        .infraction-photo .photo-overlay span {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Datos de la infraccion */
+        .infraction-data {
+            background: var(--light-gray);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .infraction-data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 13px;
+        }
+
+        .infraction-data-row:last-child {
+            border-bottom: none;
+        }
+
+        .infraction-data-row .data-label {
+            color: var(--gray);
+        }
+
+        .infraction-data-row .data-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Entidades involucradas (flujo visual) */
+        .entity-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            padding: 14px;
+            background: #FFF8E1;
+            border-radius: 12px;
+            border: 1px solid #FFE082;
+        }
+
+        .entity-badge {
+            text-align: center;
+            flex: 1;
+        }
+
+        .entity-badge .entity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .entity-badge .entity-name {
+            font-size: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .entity-arrow {
+            font-size: 16px;
+            color: var(--warning);
+            flex-shrink: 0;
+        }
+
+        /* Opciones de pago */
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .payment-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .payment-option.selected {
+            border-color: var(--primary);
+            background: #E3F2FD;
+        }
+
+        .payment-option.recommended {
+            border-color: var(--accent);
+        }
+
+        .payment-option .recommend-tag {
+            position: absolute;
+            top: -10px;
+            right: 14px;
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+
+        .payment-option-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .payment-option-header .option-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .payment-option-header .option-icon.instant {
+            background: #E8F5E9;
+        }
+
+        .payment-option-header .option-icon.deferred {
+            background: #FFF3E0;
+        }
+
+        .payment-option-header .option-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .payment-option .option-price {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 8px 0;
+        }
+
+        .payment-option .option-price.discounted {
+            color: var(--accent-dark);
+        }
+
+        .payment-option .option-price.full {
+            color: var(--danger);
+        }
+
+        .payment-option .option-original {
+            text-decoration: line-through;
+            color: var(--gray);
+            font-size: 14px;
+            margin-left: 8px;
+            font-weight: 400;
+        }
+
+        .payment-option .option-desc {
+            font-size: 12px;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        .payment-option .discount-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+        }
+
+        /* Temporizador de oferta */
+        .offer-timer {
+            text-align: center;
+            padding: 12px;
+            background: #FFEBEE;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .offer-timer .timer-value {
+            font-size: 24px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Seguro info */
+        .insurance-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .insurance-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #E3F2FD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .insurance-info {
+            flex: 1;
+        }
+
+        .insurance-info .ins-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .insurance-info .ins-policy {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* ============================================
+           CHAT entre conductor y propietario
+           ============================================ */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: var(--light-gray);
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #E3F2FD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .chat-user-info .chat-user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .chat-user-info .chat-spot-name {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .chat-bubble.received {
+            background: var(--light-gray);
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-bubble.sent {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble .chat-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-input-bar {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            padding-bottom: 24px;
+        }
+
+        .chat-input-bar input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input-bar input:focus {
+            border-color: var(--primary);
+        }
+
+        .chat-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           PRE-PAGO: seleccion de horario y metodo
+           ============================================ */
+        .time-selector-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .time-selector-grid .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .duration-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .duration-chip {
+            padding: 10px 16px;
+            border-radius: 25px;
+            border: 2px solid #e0e0e0;
+            font-size: 13px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            color: #555;
+            text-align: center;
+        }
+
+        .duration-chip.selected {
+            border-color: var(--primary);
+            background: #E3F2FD;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .price-summary {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            border: 1px solid #A5D6A7;
+        }
+
+        .price-summary .summary-label {
+            font-size: 13px;
+            color: #2E7D32;
+        }
+
+        .price-summary .summary-total {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1B5E20;
+            margin: 4px 0;
+        }
+
+        .price-summary .summary-detail {
+            font-size: 12px;
+            color: #388E3C;
+        }
+
+        .payment-method-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .payment-method-card.selected {
+            border-color: var(--primary);
+            background: #E3F2FD;
+        }
+
+        .payment-method-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: var(--light-gray);
+        }
+
+        .payment-method-info {
+            flex: 1;
+        }
+
+        .payment-method-info .method-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .payment-method-info .method-desc {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .payment-method-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+        }
+
+        .payment-method-card.selected .payment-method-check {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* ============================================
+           DENUNCIA ESTADIA EXCEDIDA (propietario)
+           ============================================ */
+        .overstay-alert-card {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .overstay-alert-card .overstay-icon {
+            font-size: 44px;
+            margin-bottom: 8px;
+        }
+
+        .overstay-alert-card h3 {
+            font-size: 17px;
+        }
+
+        .overstay-alert-card p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .overstay-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .overstay-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .overstay-detail-row .label {
+            color: var(--gray);
+        }
+
+        .overstay-detail-row .value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .overstay-detail-row .value.danger {
+            color: var(--danger);
+        }
+
+        .overstay-photo-area {
+            width: 100%;
+            height: 140px;
+            background: #1a1a2e;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin: 16px 0;
+            cursor: pointer;
+            gap: 6px;
+        }
+
+        .overstay-photo-area .cam-icon {
+            font-size: 40px;
+        }
+
+        .overstay-photo-area span {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .overstay-photo-area.has-photo {
+            background: #4CAF50;
+        }
+
+        /* ============================================
+           DETALLE DE MI COCHERA (vista propietario)
+           ============================================ */
+        .my-spot-detail-banner {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .my-spot-detail-banner .banner-icon {
+            font-size: 40px;
+            margin-bottom: 6px;
+        }
+
+        .my-spot-detail-banner h2 {
+            font-size: 18px;
+        }
+
+        .my-spot-detail-banner .banner-address {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+
+        .reservation-card {
+            border: 1px solid #eee;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: white;
+        }
+
+        .reservation-card.active-res {
+            border-color: var(--accent);
+            border-width: 2px;
+        }
+
+        .reservation-card.overstay {
+            border-color: var(--danger);
+            border-width: 2px;
+            background: #FFF5F5;
+        }
+
+        .reservation-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .reservation-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #E3F2FD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .reservation-user-info {
+            flex: 1;
+        }
+
+        .reservation-user-info .res-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .reservation-user-info .res-patente {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .reservation-status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .reservation-status-badge.status-active {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .reservation-status-badge.status-overstay {
+            background: #FFEBEE;
+            color: var(--danger);
+        }
+
+        .reservation-status-badge.status-completed {
+            background: #F5F5F5;
+            color: var(--gray);
+        }
+
+        .reservation-times {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+
+        .reservation-times .time-block {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            background: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .reservation-times .time-label {
+            font-size: 11px;
+            color: var(--gray);
+        }
+
+        .reservation-times .time-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .no-reservations {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray);
+        }
+
+        .no-reservations .empty-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        /* ============================================
+           SISTEMA DE ESTACIONAMIENTO
+           "Airbnb de cocheras" + estacionamiento medido
+           ============================================ */
+
+        /* Hub: pantalla principal de estacionamiento */
+        .parking-hub-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .parking-hub-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #eee;
+            background: white;
+        }
+
+        .parking-hub-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .parking-hub-card.search-card {
+            border-color: #BBDEFB;
+            background: linear-gradient(135deg, #E3F2FD, #fff);
+        }
+
+        .parking-hub-card.offer-card {
+            border-color: #C8E6C9;
+            background: linear-gradient(135deg, #E8F5E9, #fff);
+        }
+
+        .parking-hub-icon {
+            font-size: 40px;
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .search-card .parking-hub-icon {
+            background: #BBDEFB;
+        }
+
+        .offer-card .parking-hub-icon {
+            background: #C8E6C9;
+        }
+
+        .parking-hub-info h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .parking-hub-info p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        /* Mis espacios publicados */
+        .my-spots-section {
+            margin-top: 24px;
+        }
+
+        .my-spots-section h3 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .my-spot-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .my-spot-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .my-spot-status.active { background: var(--accent); }
+        .my-spot-status.inactive { background: #ccc; }
+
+        .my-spot-info { flex: 1; }
+
+        .my-spot-info .spot-addr {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .my-spot-info .spot-schedule {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .my-spot-price {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--accent-dark);
+        }
+
+        /* Mapa de busqueda de estacionamiento */
+        #parking-search-map {
+            width: 100%;
+            height: 280px;
+            border-radius: 16px;
+            border: 2px solid #e0e0e0;
+            z-index: 1;
+            margin-bottom: 12px;
+        }
+
+        .parking-filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .parking-filter {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            white-space: nowrap;
+            transition: all 0.2s;
+            color: #555;
+        }
+
+        .parking-filter.active {
+            border-color: var(--primary);
+            background: #E3F2FD;
+            color: var(--primary);
+        }
+
+        /* Lista de resultados de estacionamiento */
+        .parking-results h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .parking-spot-card {
+            display: flex;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .parking-spot-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .spot-type-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .spot-type-badge.private { background: #E8F5E9; }
+        .spot-type-badge.metered { background: #E3F2FD; }
+
+        .spot-details { flex: 1; }
+
+        .spot-details .spot-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .spot-details .spot-address {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 2px;
+        }
+
+        .spot-details .spot-distance {
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .spot-price-tag {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .spot-price-tag .price {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent-dark);
+        }
+
+        .spot-price-tag .price-unit {
+            font-size: 11px;
+            color: var(--gray);
+        }
+
+        /* Detalle del estacionamiento */
+        .spot-detail-header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .spot-detail-header .detail-icon {
+            font-size: 50px;
+            margin-bottom: 8px;
+        }
+
+        .spot-detail-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .spot-detail-header .detail-address {
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .spot-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .spot-info-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .spot-info-item .info-label {
+            font-size: 11px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
+        .spot-info-item .info-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .spot-owner-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: #FFF8E1;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #FFE082;
+        }
+
+        .spot-owner-card .owner-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #FFE082;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .spot-owner-card .owner-info {
+            flex: 1;
+        }
+
+        .spot-owner-card .owner-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .spot-owner-card .owner-rating {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        #spot-detail-map {
+            width: 100%;
+            height: 160px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 16px;
+            z-index: 1;
+        }
+
+        /* Sesion de estacionamiento activa */
+        .parking-session-card {
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: 20px;
+            padding: 30px 24px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .parking-session-card .session-icon {
+            font-size: 50px;
+            margin-bottom: 8px;
+        }
+
+        .parking-session-card h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .parking-session-card .session-address {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .parking-timer {
+            font-size: 48px;
+            font-weight: 800;
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .parking-cost-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .parking-cost-display .cost-label {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .parking-cost-display .cost-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--accent-dark);
+        }
+
+        .parking-session-info {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .parking-session-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+        }
+
+        .parking-session-info .info-row .label {
+            color: var(--gray);
+        }
+
+        .parking-session-info .info-row .value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Formulario ofrecer espacio */
+        .price-suggestion {
+            background: #E3F2FD;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .time-slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .time-slot {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            font-size: 12px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+            color: #555;
+        }
+
+        .time-slot.selected {
+            border-color: var(--primary);
+            background: #E3F2FD;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Municipio selector */
+        .municipio-selector select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23757575' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-frame">
+
+    <!-- =============================================
+         PANTALLA: BIENVENIDA
+         Es lo primero que ve el usuario al abrir la app
+         ============================================= -->
+    <div id="welcome" class="screen active">
+        <div class="content">
+            <div class="app-logo">🚦</div>
+            <div class="app-title">TransitAR</div>
+            <div class="app-subtitle">Seguridad vial colaborativa<br>para las ciudades argentinas</div>
+            <div class="welcome-buttons">
+                <button class="btn" onclick="showScreen('login')">Iniciar Sesion</button>
+                <button class="btn register-btn" onclick="showScreen('register')">Crear Cuenta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: REGISTRO
+         El usuario elige si es conductor o peaton
+         ============================================= -->
+    <div id="register" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('welcome')">&#8592;</button>
+            <h1>Crear Cuenta</h1>
+        </div>
+        <div class="content">
+            <p style="font-size:14px; color:#555; margin-bottom:16px; font-weight:500;">¿Como vas a usar TransitAR?</p>
+
+            <div class="role-selector">
+                <div class="role-card" onclick="selectRole('conductor')" id="role-conductor">
+                    <div class="role-icon">🚗</div>
+                    <div class="role-name">Conductor</div>
+                </div>
+                <div class="role-card" onclick="selectRole('peaton')" id="role-peaton">
+                    <div class="role-icon">🚶</div>
+                    <div class="role-name">Peaton</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Nombre completo</label>
+                <input type="text" placeholder="Ej: Juan Perez" id="reg-name">
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" placeholder="juan@email.com" id="reg-email">
+            </div>
+            <div class="input-group">
+                <label>Contrasena</label>
+                <input type="password" placeholder="Minimo 8 caracteres" id="reg-pass">
+            </div>
+
+            <!-- Solo se muestra si elige "Conductor" -->
+            <div class="patente-section" id="patente-section">
+                <div class="input-group" style="margin-bottom:8px;">
+                    <label>Patente del vehiculo</label>
+                    <input type="text" placeholder="Ej: AB 123 CD" id="reg-patente"
+                           style="text-transform: uppercase; text-align: center; font-weight: 700; font-size: 18px; letter-spacing: 2px;">
+                </div>
+                <div class="input-group" style="margin-bottom:0;">
+                    <label>Provincia</label>
+                    <select id="reg-provincia">
+                        <option value="">Selecciona tu provincia</option>
+                        <option>Buenos Aires</option>
+                        <option>CABA</option>
+                        <option>Cordoba</option>
+                        <option>Santa Fe</option>
+                        <option>Mendoza</option>
+                        <option>Tucuman</option>
+                        <option>Entre Rios</option>
+                        <option>Salta</option>
+                        <option>Misiones</option>
+                        <option>Chaco</option>
+                        <option>Corrientes</option>
+                        <option>Santiago del Estero</option>
+                        <option>San Juan</option>
+                        <option>Jujuy</option>
+                        <option>Rio Negro</option>
+                        <option>Neuquen</option>
+                        <option>Formosa</option>
+                        <option>Chubut</option>
+                        <option>San Luis</option>
+                        <option>Catamarca</option>
+                        <option>La Rioja</option>
+                        <option>La Pampa</option>
+                        <option>Santa Cruz</option>
+                        <option>Tierra del Fuego</option>
+                    </select>
+                </div>
+                <div class="info-text">
+                    ⚠️ La patente sera validada por el Registro de la Propiedad Automotor de tu region.
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="doRegister()" style="margin-top:8px;">
+                Crear Cuenta
+            </button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: LOGIN
+         ============================================= -->
+    <div id="login" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('welcome')">&#8592;</button>
+            <h1>Iniciar Sesion</h1>
+        </div>
+        <div class="content">
+            <div style="text-align:center; margin-bottom:30px; margin-top:20px;">
+                <div style="font-size:50px;">🚦</div>
+                <h2 style="color:#333; margin-top:12px;">Bienvenido de vuelta</h2>
+            </div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" placeholder="tu@email.com">
+            </div>
+            <div class="input-group">
+                <label>Contrasena</label>
+                <input type="password" placeholder="Tu contrasena">
+            </div>
+            <button class="btn btn-primary" onclick="doLogin()" style="margin-top:8px;">
+                Ingresar
+            </button>
+            <p style="text-align:center; margin-top:16px; color:var(--primary); font-size:14px; cursor:pointer;">
+                ¿Olvidaste tu contrasena?
+            </p>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: HOME (Pantalla principal)
+         Aqui el usuario ve sus opciones principales
+         ============================================= -->
+    <div id="home" class="screen">
+        <div class="header">
+            <h1>🚦 TransitAR</h1>
+        </div>
+        <div class="content">
+            <div class="user-welcome">
+                <h2>Hola, <span id="user-name-display">Usuario</span> 👋</h2>
+                <p id="user-role-display">Conductor</p>
+            </div>
+
+            <!-- Banner de puntos (solo conductores) -->
+            <div class="points-banner" id="points-banner">
+                <div class="points-label">Tus puntos</div>
+                <div class="points-value" id="home-points">350</div>
+                <div class="points-sublabel">Segui conduciendo sin el celular para sumar mas</div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="action-card" id="trip-action" onclick="showScreen('trip')">
+                    <div class="action-icon">🛣️</div>
+                    <div class="action-name">Iniciar Viaje</div>
+                    <div class="action-desc">Modo conduccion segura</div>
+                </div>
+                <div class="action-card" onclick="showScreen('points')">
+                    <div class="action-icon">⭐</div>
+                    <div class="action-name">Mis Puntos</div>
+                    <div class="action-desc">Historial y beneficios</div>
+                </div>
+                <div class="action-card" id="debts-action" onclick="showScreen('debts')">
+                    <div class="action-icon">📋</div>
+                    <div class="action-name">Mis Deudas</div>
+                    <div class="action-desc">Infracciones pendientes</div>
+                </div>
+            </div>
+
+            <!-- Boton grande de Estacionamiento (disponible para todos) -->
+            <div class="action-card" id="parking-action" onclick="showScreen('parking-hub')" style="text-align:center; margin-bottom:12px; border: 2px solid #BBDEFB; background: linear-gradient(135deg, #E3F2FD, #fff);">
+                <div class="action-icon">🅿️</div>
+                <div class="action-name">Estacionamiento</div>
+                <div class="action-desc">Busca donde estacionar o publica tu cochera</div>
+            </div>
+
+            <div class="action-card" id="emergency-action" onclick="showScreen('emergency')" style="text-align:center;">
+                <div class="action-icon">🆘</div>
+                <div class="action-name">Contactos de Emergencia</div>
+                <div class="action-desc">Las unicas llamadas permitidas durante un viaje</div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="showScreen('home')">
+                <span class="nav-icon">🏠</span>
+                Inicio
+            </button>
+            <button class="nav-item" id="nav-trip" onclick="showScreen('trip')">
+                <span class="nav-icon">🚗</span>
+                Viaje
+            </button>
+            <button class="nav-item" onclick="showScreen('parking-hub')">
+                <span class="nav-icon">🅿️</span>
+                Parking
+            </button>
+            <button class="nav-item" onclick="showScreen('points')">
+                <span class="nav-icon">⭐</span>
+                Puntos
+            </button>
+            <button class="nav-item" onclick="showScreen('profile')">
+                <span class="nav-icon">👤</span>
+                Perfil
+            </button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: DENUNCIAR INFRACCION
+         Foto + ubicacion + tipo + municipio
+         ============================================= -->
+    <div id="report" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Denunciar Infraccion</h1>
+        </div>
+        <div class="content">
+            <div class="camera-area" id="camera-area" onclick="takePhoto()">
+                <div class="cam-icon">📷</div>
+                <span id="camera-text">Toca para sacar foto</span>
+            </div>
+
+            <!-- ============================================
+                 MAPA REAL
+                 Leaflet crea el mapa dentro de este div.
+                 El usuario puede tocar el mapa para poner
+                 un marcador en la ubicacion de la infraccion.
+                 ============================================ -->
+            <div class="map-container">
+                <div class="map-label">📍 Ubicacion de la infraccion</div>
+                <div id="report-map"></div>
+                <div class="map-status waiting" id="map-status">
+                    <span>⏳</span>
+                    <div>
+                        <div id="map-status-text">Toca el mapa para marcar la ubicacion</div>
+                        <div class="map-address" id="map-address"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p style="font-size:14px; font-weight:600; color:#333; margin-bottom:10px;">Tipo de infraccion:</p>
+            <div class="infraction-types">
+                <div class="infraction-chip" onclick="toggleChip(this)">Estacionamiento prohibido</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Doble fila</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Semaforo en rojo</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Exceso de velocidad</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Uso de celular</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Sin cinturon</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Senda peatonal</div>
+                <div class="infraction-chip" onclick="toggleChip(this)">Otra</div>
+            </div>
+
+            <div class="input-group municipio-selector">
+                <label>Municipio destino de la denuncia</label>
+                <select>
+                    <option value="">Selecciona el municipio</option>
+                    <option>Municipalidad de Buenos Aires</option>
+                    <option>Municipalidad de Cordoba</option>
+                    <option>Municipalidad de Rosario</option>
+                    <option>Municipalidad de Mendoza</option>
+                    <option>Municipalidad de La Plata</option>
+                    <option>Otro municipio...</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Descripcion adicional (opcional)</label>
+                <input type="text" placeholder="Ej: Auto negro en esquina de Av. Corrientes y Callao">
+            </div>
+
+            <button class="btn btn-danger" onclick="submitReport()" style="margin-top:8px;">
+                🚨 Enviar Denuncia
+            </button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: INICIAR VIAJE
+         Modo conduccion segura
+         ============================================= -->
+    <div id="trip" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Modo Viaje</h1>
+        </div>
+        <div class="content">
+            <div class="trip-status">
+                <div class="trip-circle idle" id="trip-circle">
+                    <div class="trip-icon" id="trip-status-icon">🚗</div>
+                    <div class="trip-text" id="trip-status-text">Listo para salir</div>
+                </div>
+
+                <div class="trip-timer" id="trip-timer" style="display:none;">00:00:00</div>
+
+                <div class="blocked-badge" id="blocked-badge">
+                    🔒 Llamadas y mensajes bloqueados
+                </div>
+
+                <div class="trip-info-card">
+                    <p><strong>¿Como funciona?</strong><br>
+                    Al iniciar el viaje, se bloquean las notificaciones de WhatsApp, mensajes y llamadas.
+                    Solo podran contactarte tus <strong>contactos de emergencia</strong>.<br><br>
+                    Ganas <strong>+10 puntos</strong> por cada viaje completado sin usar el celular.</p>
+                </div>
+
+                <button class="btn btn-accent" id="trip-start-btn" onclick="toggleTrip()">
+                    ▶️ Iniciar Viaje
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: MIS PUNTOS
+         Historial y canje
+         ============================================= -->
+    <div id="points" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Mis Puntos</h1>
+        </div>
+        <div class="content">
+            <div class="points-detail-card">
+                <div class="points-label">Puntos acumulados</div>
+                <div class="points-detail-value" id="points-total">350</div>
+                <div class="points-sublabel">Nivel: Conductor Responsable 🏅</div>
+            </div>
+
+            <!-- Banner YPF - Proximamente -->
+            <div class="ypf-banner">
+                <div class="ypf-icon">⛽</div>
+                <div class="ypf-text">
+                    <h4>Canje en YPF</h4>
+                    <p>Pronto podras canjear tus puntos por descuentos en combustible</p>
+                    <span class="ypf-badge">PROXIMAMENTE</span>
+                </div>
+            </div>
+
+            <h3 style="margin: 24px 0 12px; font-size: 16px; color: #333;">Historial</h3>
+
+            <div class="points-history-item">
+                <div class="points-history-icon earned">🚗</div>
+                <div class="points-history-info">
+                    <div class="title">Viaje completado</div>
+                    <div class="date">Hoy, 14:30</div>
+                </div>
+                <div class="points-history-amount">+10</div>
+            </div>
+            <div class="points-history-item">
+                <div class="points-history-icon reported">📸</div>
+                <div class="points-history-info">
+                    <div class="title">Denuncia verificada</div>
+                    <div class="date">Ayer, 09:15</div>
+                </div>
+                <div class="points-history-amount">+5</div>
+            </div>
+            <div class="points-history-item">
+                <div class="points-history-icon earned">🚗</div>
+                <div class="points-history-info">
+                    <div class="title">Viaje completado</div>
+                    <div class="date">25 Mar, 18:00</div>
+                </div>
+                <div class="points-history-amount">+10</div>
+            </div>
+            <div class="points-history-item">
+                <div class="points-history-icon earned">🚗</div>
+                <div class="points-history-info">
+                    <div class="title">Viaje completado</div>
+                    <div class="date">24 Mar, 08:45</div>
+                </div>
+                <div class="points-history-amount">+10</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: MIS DEUDAS
+         Infracciones pendientes de pago
+         ============================================= -->
+    <div id="debts" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Mis Deudas</h1>
+        </div>
+        <div class="content">
+            <div class="patente-display">
+                <div class="label">Patente registrada</div>
+                <div class="patente">AB 123 CD</div>
+                <div class="status">✓ Validada por RNPA</div>
+            </div>
+
+            <h3 style="font-size:15px; color:#333; margin-bottom:12px;">Infracciones pendientes</h3>
+
+            <div class="debt-item">
+                <div class="debt-icon">🚦</div>
+                <div class="debt-info">
+                    <div class="debt-title">Semaforo en rojo</div>
+                    <div class="debt-date">15/02/2026 - Av. Corrientes 1200</div>
+                    <div class="debt-amount">$45.000</div>
+                    <button class="debt-pay-btn" onclick="payDebt(this)">Pagar</button>
+                </div>
+            </div>
+
+            <div class="debt-item">
+                <div class="debt-icon">🅿️</div>
+                <div class="debt-info">
+                    <div class="debt-title">Estacionamiento prohibido</div>
+                    <div class="debt-date">03/01/2026 - Calle Florida 500</div>
+                    <div class="debt-amount">$28.000</div>
+                    <button class="debt-pay-btn" onclick="payDebt(this)">Pagar</button>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:20px; padding:16px; background:#f5f5f5; border-radius:12px;">
+                <p style="font-size:13px; color:var(--gray);">
+                    💡 Las deudas se sincronizan con el sistema de infracciones de tu municipio.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: CONTACTOS DE EMERGENCIA
+         ============================================= -->
+    <div id="emergency" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Contactos de Emergencia</h1>
+        </div>
+        <div class="content">
+            <p style="font-size:13px; color:var(--gray); margin-bottom:16px; line-height:1.5;">
+                Estas personas podran llamarte y enviarte mensajes incluso cuando tengas el <strong>Modo Viaje</strong> activado.
+            </p>
+
+            <div class="emergency-contact">
+                <div class="emergency-avatar">👩</div>
+                <div class="emergency-info">
+                    <div class="name">Maria Garcia</div>
+                    <div class="phone">+54 11 5555-1234</div>
+                </div>
+                <button class="emergency-delete" onclick="removeContact(this)">✕</button>
+            </div>
+
+            <div class="emergency-contact">
+                <div class="emergency-avatar">👨</div>
+                <div class="emergency-info">
+                    <div class="name">Carlos Perez</div>
+                    <div class="phone">+54 11 5555-5678</div>
+                </div>
+                <button class="emergency-delete" onclick="removeContact(this)">✕</button>
+            </div>
+
+            <button class="add-contact-btn" onclick="addContact()" style="margin-top:12px;">
+                + Agregar contacto de emergencia
+            </button>
+
+            <div style="margin-top:20px; padding:16px; background:#E8F5E9; border-radius:12px;">
+                <p style="font-size:13px; color:#2E7D32; line-height:1.5;">
+                    <strong>🛡️ Maximo 5 contactos.</strong><br>
+                    Solo estos contactos podran comunicarse con vos durante un viaje activo.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: PERFIL
+         ============================================= -->
+    <div id="profile" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Mi Perfil</h1>
+        </div>
+        <div class="content">
+            <div style="text-align:center; margin-bottom:24px; margin-top:10px;">
+                <div style="width:80px;height:80px;border-radius:50%;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;">👤</div>
+                <h3 id="profile-name">Usuario</h3>
+                <p style="color:var(--gray); font-size:14px;" id="profile-role">Conductor</p>
+            </div>
+
+            <div class="card">
+                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">Email</p>
+                <p style="font-weight:600;">usuario@email.com</p>
+            </div>
+            <div class="card" id="profile-patente-card">
+                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">Patente</p>
+                <p style="font-weight:700; font-size:20px; letter-spacing:2px;">AB 123 CD</p>
+                <p style="font-size:12px; color:var(--accent-dark); margin-top:4px;">✓ Validada</p>
+            </div>
+            <div class="card">
+                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">Viajes completados</p>
+                <p style="font-weight:700; font-size:24px;">23</p>
+            </div>
+            <div class="card">
+                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">Denuncias realizadas</p>
+                <p style="font-weight:700; font-size:24px;">7</p>
+            </div>
+
+            <button class="btn btn-outline" onclick="showScreen('welcome')" style="margin-top:12px;">
+                Cerrar Sesion
+            </button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: INFRACCION DETECTADA (vista del conductor)
+         Esta pantalla aparece cuando al conductor le
+         notifican que alguien le saco foto cometiendo
+         una infraccion. Muestra los datos y opciones de pago.
+         ============================================= -->
+    <div id="infraction-alert" class="screen">
+        <div class="header" style="background: linear-gradient(135deg, #E53935, #C62828);">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Infraccion Detectada</h1>
+        </div>
+        <div class="content">
+            <!-- Banner de alerta -->
+            <div class="infraction-alert-banner">
+                <div class="alert-icon">🚨</div>
+                <h2>Infraccion en curso</h2>
+                <div class="alert-subtitle">Tu aseguradora fue notificada por el municipio</div>
+            </div>
+
+            <!-- Flujo visual: quien notifico a quien -->
+            <div class="entity-flow">
+                <div class="entity-badge">
+                    <div class="entity-icon" style="background:#E3F2FD;">📸</div>
+                    <div class="entity-name">Denunciante</div>
+                </div>
+                <div class="entity-arrow">→</div>
+                <div class="entity-badge">
+                    <div class="entity-icon" style="background:#FFF3E0;">🏛️</div>
+                    <div class="entity-name">Municipio</div>
+                </div>
+                <div class="entity-arrow">→</div>
+                <div class="entity-badge">
+                    <div class="entity-icon" style="background:#E8F5E9;">🛡️</div>
+                    <div class="entity-name">Aseguradora</div>
+                </div>
+                <div class="entity-arrow">→</div>
+                <div class="entity-badge">
+                    <div class="entity-icon" style="background:#FFEBEE;">🚗</div>
+                    <div class="entity-name">Vos</div>
+                </div>
+            </div>
+
+            <!-- Foto simulada de la infraccion -->
+            <div class="infraction-photo">
+                <div style="font-size:60px; opacity:0.3;">📷</div>
+                <div class="photo-overlay">
+                    <span>📸 Foto capturada por otro usuario - <span id="alert-time">14:32</span></span>
+                </div>
+            </div>
+
+            <!-- Datos de la infraccion -->
+            <div class="infraction-data">
+                <div class="infraction-data-row">
+                    <span class="data-label">Tipo</span>
+                    <span class="data-value" id="alert-infraction-type">Doble fila</span>
+                </div>
+                <div class="infraction-data-row">
+                    <span class="data-label">Ubicacion</span>
+                    <span class="data-value" id="alert-location">Av. Corrientes 1200</span>
+                </div>
+                <div class="infraction-data-row">
+                    <span class="data-label">Patente detectada</span>
+                    <span class="data-value" id="alert-patente">AB 123 CD</span>
+                </div>
+                <div class="infraction-data-row">
+                    <span class="data-label">Municipio</span>
+                    <span class="data-value" id="alert-municipio">CABA</span>
+                </div>
+                <div class="infraction-data-row">
+                    <span class="data-label">Monto de la multa</span>
+                    <span class="data-value" style="color:var(--danger);" id="alert-fine-amount">$45.000</span>
+                </div>
+            </div>
+
+            <!-- Tu aseguradora -->
+            <div class="insurance-card">
+                <div class="insurance-logo">🛡️</div>
+                <div class="insurance-info">
+                    <div class="ins-name" id="alert-insurance-name">La Segunda Seguros</div>
+                    <div class="ins-policy">Poliza #TRA-2026-48291</div>
+                </div>
+            </div>
+
+            <!-- Temporizador de la oferta -->
+            <div class="offer-timer">
+                <div>La oferta de pago con descuento vence en:</div>
+                <div class="timer-value" id="insurance-offer-timer">29:59</div>
+            </div>
+
+            <!-- Opciones de pago -->
+            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:12px;">Elegi como pagar:</p>
+
+            <div class="payment-options">
+                <!-- Opcion 1: Pagar ahora con descuento -->
+                <div class="payment-option recommended selected" onclick="selectPaymentOption('instant')" id="pay-option-instant">
+                    <div class="recommend-tag">RECOMENDADO</div>
+                    <div class="payment-option-header">
+                        <div class="option-icon instant">⚡</div>
+                        <div class="option-title">Pagar ahora</div>
+                    </div>
+                    <div class="option-price discounted">
+                        $22.500
+                        <span class="option-original" id="alert-original-price">$45.000</span>
+                        <span class="discount-badge" id="alert-discount-badge">-50%</span>
+                    </div>
+                    <div class="option-desc">
+                        Paga el 50% de la multa ahora mismo y queda saldada. Se procesa al instante a traves de tu aseguradora. Sin antecedentes adicionales.
+                    </div>
+                </div>
+
+                <!-- Opcion 2: Diferir a la factura del seguro -->
+                <div class="payment-option" onclick="selectPaymentOption('deferred')" id="pay-option-deferred">
+                    <div class="payment-option-header">
+                        <div class="option-icon deferred">📄</div>
+                        <div class="option-title">Pagar en la proxima factura</div>
+                    </div>
+                    <div class="option-price full">$45.000</div>
+                    <div class="option-desc">
+                        El monto total se sumara a tu proxima factura del seguro. La multa queda registrada como infraccion en tu historial.
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="processInfractionPayment()" id="infraction-pay-btn">
+                ⚡ Pagar $22.500 ahora
+            </button>
+
+            <p style="text-align:center; font-size:11px; color:var(--gray); margin-top:10px; line-height:1.4;">
+                Al pagar, aceptas que la infraccion fue cometida. El pago se procesa a traves de tu aseguradora de forma segura.
+            </p>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: ESTACIONAMIENTO - HUB
+         Pantalla principal del sistema de parking.
+         Desde aca el usuario elige buscar o publicar.
+         ============================================= -->
+    <div id="parking-hub" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
+            <h1>Estacionamiento</h1>
+        </div>
+        <div class="content">
+            <p style="font-size:14px; color:#555; margin-bottom:4px; font-weight:500;">
+                ¿Que necesitas hoy?
+            </p>
+
+            <div class="parking-hub-cards">
+                <!-- Opcion 1: Buscar donde estacionar -->
+                <div class="parking-hub-card search-card" onclick="showScreen('parking-search')">
+                    <div class="parking-hub-icon">🔍</div>
+                    <div class="parking-hub-info">
+                        <h3>Buscar Estacionamiento</h3>
+                        <p>Encontra lugares libres cerca de tu destino: cocheras privadas o estacionamiento medido</p>
+                    </div>
+                </div>
+
+                <!-- Opcion 2: Ofrecer tu espacio -->
+                <div class="parking-hub-card offer-card" onclick="showScreen('parking-offer')">
+                    <div class="parking-hub-icon">🏠</div>
+                    <div class="parking-hub-info">
+                        <h3>Ofrecer Mi Espacio</h3>
+                        <p>Publica tu cochera o entrada de garage cuando no la uses y gana dinero</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mis espacios publicados (si tiene alguno) -->
+            <div class="my-spots-section" id="my-spots-section" style="display:none;">
+                <h3>Mis espacios publicados</h3>
+                <div id="my-spots-list">
+                    <!-- Se llena dinamicamente con JS -->
+                </div>
+            </div>
+
+            <!-- Info sobre estacionamiento medido -->
+            <div style="margin-top:24px; padding:16px; background:#E3F2FD; border-radius:12px;">
+                <p style="font-size:13px; color:var(--primary); line-height:1.5;">
+                    <strong>💡 Estacionamiento medido</strong><br>
+                    Tambien podes buscar y pagar estacionamiento medido municipal directamente desde la app, sin necesidad de parquimetro.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: BUSCAR ESTACIONAMIENTO
+         Mapa con spots disponibles + filtros + lista
+         ============================================= -->
+    <div id="parking-search" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('parking-hub')">&#8592;</button>
+            <h1>Buscar Estacionamiento</h1>
+        </div>
+        <div class="content">
+            <!-- Filtros -->
+            <div class="parking-filter-bar">
+                <div class="parking-filter active" onclick="toggleParkingFilter(this, 'all')">Todos</div>
+                <div class="parking-filter" onclick="toggleParkingFilter(this, 'private')">🏠 Cocheras</div>
+                <div class="parking-filter" onclick="toggleParkingFilter(this, 'metered')">🅿️ Medido</div>
+            </div>
+
+            <!-- Mapa con spots -->
+            <div id="parking-search-map"></div>
+
+            <!-- Resultados -->
+            <div class="parking-results">
+                <h3 id="parking-results-title">3 lugares disponibles cerca</h3>
+
+                <div class="parking-spot-card" onclick="showParkingDetail('private1')">
+                    <div class="spot-type-badge private">🏠</div>
+                    <div class="spot-details">
+                        <div class="spot-name">Cochera de Martin</div>
+                        <div class="spot-address">Av. Corrientes 1842</div>
+                        <div class="spot-distance">📍 350m de tu destino</div>
+                    </div>
+                    <div class="spot-price-tag">
+                        <div class="price">$500</div>
+                        <div class="price-unit">/hora</div>
+                    </div>
+                </div>
+
+                <div class="parking-spot-card" onclick="showParkingDetail('metered1')">
+                    <div class="spot-type-badge metered">🅿️</div>
+                    <div class="spot-details">
+                        <div class="spot-name">Est. Medido Municipal</div>
+                        <div class="spot-address">Calle Florida 620</div>
+                        <div class="spot-distance">📍 120m de tu destino</div>
+                    </div>
+                    <div class="spot-price-tag">
+                        <div class="price">$200</div>
+                        <div class="price-unit">/hora</div>
+                    </div>
+                </div>
+
+                <div class="parking-spot-card" onclick="showParkingDetail('private2')">
+                    <div class="spot-type-badge private">🏠</div>
+                    <div class="spot-details">
+                        <div class="spot-name">Garage de Ana</div>
+                        <div class="spot-address">Tucuman 1350</div>
+                        <div class="spot-distance">📍 500m de tu destino</div>
+                    </div>
+                    <div class="spot-price-tag">
+                        <div class="price">$400</div>
+                        <div class="price-unit">/hora</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: OFRECER MI ESPACIO
+         Formulario para publicar una cochera/garage
+         ============================================= -->
+    <div id="parking-offer" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('parking-hub')">&#8592;</button>
+            <h1>Ofrecer Mi Espacio</h1>
+        </div>
+        <div class="content">
+            <p style="font-size:13px; color:var(--gray); margin-bottom:16px; line-height:1.5;">
+                Publica tu cochera o entrada de garage para que otros conductores la usen cuando no la necesites.
+            </p>
+
+            <div class="input-group">
+                <label>Direccion del espacio</label>
+                <input type="text" placeholder="Ej: Av. Corrientes 1842" id="offer-address">
+            </div>
+
+            <!-- Mapa para marcar ubicacion exacta -->
+            <div class="map-container">
+                <div class="map-label">📍 Marca la ubicacion en el mapa</div>
+                <div id="offer-map" style="width:100%; height:180px; border-radius:12px; border:2px solid #e0e0e0; z-index:1;"></div>
+            </div>
+
+            <div class="input-group">
+                <label>Tipo de espacio</label>
+                <select id="offer-type">
+                    <option value="garage">Garage / Cochera techada</option>
+                    <option value="entrada">Entrada de garage (al aire libre)</option>
+                    <option value="terreno">Terreno / Lote privado</option>
+                </select>
+            </div>
+
+            <p style="font-size:14px; font-weight:600; color:#333; margin-bottom:8px;">Dias disponibles:</p>
+            <div class="time-slots" id="offer-days">
+                <div class="time-slot" onclick="toggleChip(this)">Lun</div>
+                <div class="time-slot" onclick="toggleChip(this)">Mar</div>
+                <div class="time-slot" onclick="toggleChip(this)">Mie</div>
+                <div class="time-slot" onclick="toggleChip(this)">Jue</div>
+                <div class="time-slot" onclick="toggleChip(this)">Vie</div>
+                <div class="time-slot" onclick="toggleChip(this)">Sab</div>
+                <div class="time-slot" onclick="toggleChip(this)">Dom</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <div class="input-group" style="flex:1;">
+                    <label>Desde</label>
+                    <input type="time" value="08:00" id="offer-from">
+                </div>
+                <div class="input-group" style="flex:1;">
+                    <label>Hasta</label>
+                    <input type="time" value="18:00" id="offer-to">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Precio por hora ($)</label>
+                <input type="number" placeholder="500" id="offer-price">
+                <div class="price-suggestion">
+                    💡 <strong>Precio sugerido: $400-$600/hora</strong> para tu zona, basado en el estacionamiento medido municipal
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Instrucciones para el conductor (opcional)</label>
+                <input type="text" placeholder="Ej: Tocar timbre 2B, porton negro" id="offer-instructions">
+            </div>
+
+            <button class="btn btn-accent" onclick="publishSpot()" style="margin-top:8px;">
+                🏠 Publicar Espacio
+            </button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: DETALLE DEL ESTACIONAMIENTO
+         Info completa de un spot + boton reservar
+         ============================================= -->
+    <div id="parking-detail" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('parking-search')">&#8592;</button>
+            <h1>Detalle</h1>
+        </div>
+        <div class="content">
+            <div class="spot-detail-header">
+                <div class="detail-icon" id="detail-icon">🏠</div>
+                <h2 id="detail-name">Cochera de Martin</h2>
+                <div class="detail-address" id="detail-address">Av. Corrientes 1842</div>
+            </div>
+
+            <div class="spot-info-grid">
+                <div class="spot-info-item">
+                    <div class="info-label">Precio</div>
+                    <div class="info-value" id="detail-price">$500/h</div>
+                </div>
+                <div class="spot-info-item">
+                    <div class="info-label">Distancia</div>
+                    <div class="info-value" id="detail-distance">350m</div>
+                </div>
+                <div class="spot-info-item">
+                    <div class="info-label">Tipo</div>
+                    <div class="info-value" id="detail-type">Cochera</div>
+                </div>
+                <div class="spot-info-item">
+                    <div class="info-label">Disponible</div>
+                    <div class="info-value" id="detail-hours">8-18hs</div>
+                </div>
+            </div>
+
+            <!-- Propietario (solo cocheras privadas) -->
+            <div class="spot-owner-card" id="detail-owner-card">
+                <div class="owner-avatar">👤</div>
+                <div class="owner-info">
+                    <div class="owner-name" id="detail-owner">Martin Rodriguez</div>
+                    <div class="owner-rating">⭐ 4.8 - 23 alquileres</div>
+                </div>
+            </div>
+
+            <!-- Mapa con ubicacion -->
+            <div id="spot-detail-map"></div>
+
+            <!-- Instrucciones -->
+            <div id="detail-instructions" style="background:#FFF8E1; border-radius:12px; padding:14px; margin-bottom:16px; border:1px solid #FFE082; display:none;">
+                <p style="font-size:13px; color:#F57F17; line-height:1.5;">
+                    <strong>📝 Instrucciones:</strong><br>
+                    <span id="detail-instructions-text"></span>
+                </p>
+            </div>
+
+            <button class="btn btn-primary" onclick="openPrePayment()">
+                🅿️ Reservar y Pagar
+            </button>
+            <p style="text-align:center; font-size:12px; color:var(--gray); margin-top:8px;">
+                Selecciona horario y paga por adelantado para reservar
+            </p>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: SESION DE ESTACIONAMIENTO ACTIVA
+         Timer + costo en tiempo real
+         ============================================= -->
+    <div id="parking-session" class="screen">
+        <div class="header">
+            <h1>🅿️ Estacionamiento Activo</h1>
+        </div>
+        <div class="content">
+            <div class="parking-session-card">
+                <div class="session-icon" id="session-icon">🏠</div>
+                <h2 id="session-name">Cochera de Martin</h2>
+                <div class="session-address" id="session-address">Av. Corrientes 1842</div>
+            </div>
+
+            <div class="parking-timer" id="parking-timer">00:00:00</div>
+
+            <div class="parking-cost-display">
+                <div class="cost-label">Costo acumulado</div>
+                <div class="cost-value" id="parking-cost">$0</div>
+            </div>
+
+            <div class="parking-session-info">
+                <div class="info-row">
+                    <span class="label">Tipo</span>
+                    <span class="value" id="session-type">Cochera privada</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Tarifa</span>
+                    <span class="value" id="session-rate">$500/hora</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Inicio</span>
+                    <span class="value" id="session-start-time">--:--</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Disponible hasta</span>
+                    <span class="value" id="session-end-limit">18:00</span>
+                </div>
+            </div>
+
+            <!-- Chat con el propietario (solo disponible post-pago) -->
+            <button class="btn btn-outline" onclick="openSpotChat()" id="session-chat-btn" style="margin-bottom:10px;">
+                💬 Chatear con el propietario
+            </button>
+
+            <button class="btn btn-danger" onclick="endParkingSession()">
+                🚗 Liberar Estacionamiento
+            </button>
+
+            <p style="text-align:center; font-size:12px; color:var(--gray); margin-top:12px;">
+                Al liberar, el lugar volvera a estar disponible para otros.
+            </p>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: CHAT
+         Comunicacion entre conductor y propietario
+         del espacio de estacionamiento
+         ============================================= -->
+    <div id="spot-chat" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('parking-session')">&#8592;</button>
+            <h1>Chat</h1>
+        </div>
+        <div class="chat-container">
+            <div class="chat-header-info">
+                <div class="chat-avatar" id="chat-avatar">👤</div>
+                <div class="chat-user-info">
+                    <div class="chat-user-name" id="chat-user-name">Martin Rodriguez</div>
+                    <div class="chat-spot-name" id="chat-spot-label">Cochera - Av. Corrientes 1842</div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <!-- Mensaje automatico del sistema -->
+                <div style="text-align:center; font-size:12px; color:var(--gray); padding:10px; background:#f5f5f5; border-radius:10px;">
+                    🔒 Este chat es exclusivo para coordinar el uso del espacio de estacionamiento.
+                </div>
+
+                <!-- Mensajes simulados -->
+                <div class="chat-bubble received">
+                    Hola! El espacio esta disponible. Tenes alguna consulta antes de reservar?
+                    <span class="chat-time">15:30</span>
+                </div>
+            </div>
+
+            <div class="chat-input-bar">
+                <input type="text" placeholder="Escribe un mensaje..." id="chat-input"
+                       onkeypress="if(event.key==='Enter')sendChatMessage()">
+                <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: PRE-PAGO
+         El conductor selecciona horario, ve el costo
+         total y paga ANTES de ocupar el espacio
+         ============================================= -->
+    <div id="pre-payment" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('parking-detail')">&#8592;</button>
+            <h1>Reservar y Pagar</h1>
+        </div>
+        <div class="content">
+            <!-- Info del spot -->
+            <div class="card" style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:30px;" id="prepay-icon">🏠</div>
+                <div>
+                    <div style="font-weight:600; font-size:15px;" id="prepay-name">Cochera de Martin</div>
+                    <div style="font-size:13px; color:var(--gray);" id="prepay-address">Av. Corrientes 1842</div>
+                </div>
+            </div>
+
+            <!-- Seleccion de horario -->
+            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:10px;">Selecciona el horario:</p>
+
+            <div class="time-selector-grid">
+                <div class="input-group">
+                    <label>Llegada</label>
+                    <input type="time" id="prepay-from" value="09:00" onchange="updatePrePayTotal()">
+                </div>
+                <div class="input-group">
+                    <label>Salida</label>
+                    <input type="time" id="prepay-to" value="13:00" onchange="updatePrePayTotal()">
+                </div>
+            </div>
+
+            <p style="font-size:13px; color:var(--gray); margin-bottom:12px;">O selecciona una duracion rapida:</p>
+            <div class="duration-chips">
+                <div class="duration-chip" onclick="setDuration(1, this)">1 hora</div>
+                <div class="duration-chip" onclick="setDuration(2, this)">2 horas</div>
+                <div class="duration-chip selected" onclick="setDuration(4, this)">4 horas</div>
+                <div class="duration-chip" onclick="setDuration(8, this)">8 horas</div>
+            </div>
+
+            <!-- Resumen de precio -->
+            <div class="price-summary">
+                <div class="summary-label">Total a pagar</div>
+                <div class="summary-total" id="prepay-total">$2.000</div>
+                <div class="summary-detail" id="prepay-detail">4 horas x $500/hora</div>
+            </div>
+
+            <!-- Metodo de pago -->
+            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:10px;">Metodo de pago:</p>
+
+            <div class="payment-method-card selected" onclick="selectPayMethod(this, 'wallet')">
+                <div class="payment-method-icon">💰</div>
+                <div class="payment-method-info">
+                    <div class="method-name">Billetera Virtual</div>
+                    <div class="method-desc">Mercado Pago, Ualá, etc.</div>
+                </div>
+                <div class="payment-method-check">✓</div>
+            </div>
+
+            <div class="payment-method-card" onclick="selectPayMethod(this, 'card')">
+                <div class="payment-method-icon">💳</div>
+                <div class="payment-method-info">
+                    <div class="method-name">Tarjeta de credito/debito</div>
+                    <div class="method-desc">Visa, Mastercard, Amex</div>
+                </div>
+                <div class="payment-method-check">✓</div>
+            </div>
+
+            <button class="btn btn-accent" onclick="confirmPrePayment()" style="margin-top:12px;">
+                🔒 Pagar y Reservar
+            </button>
+
+            <div style="margin-top:12px; padding:12px; background:#FFF8E1; border-radius:10px; border:1px solid #FFE082;">
+                <p style="font-size:12px; color:#F57F17; line-height:1.4;">
+                    <strong>⚠️ Importante:</strong> Debes retirar tu vehiculo antes de la hora de salida pactada.
+                    Si excedes el horario, el propietario puede reportar la situacion y se aplicaran cargos adicionales.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: MI COCHERA (vista propietario)
+         El propietario ve su cochera, las reservas
+         activas y puede reportar estadia excedida
+         ============================================= -->
+    <div id="my-spot-detail" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('parking-hub')">&#8592;</button>
+            <h1>Mi Cochera</h1>
+        </div>
+        <div class="content">
+            <!-- Banner del espacio -->
+            <div class="my-spot-detail-banner">
+                <div class="banner-icon">🏠</div>
+                <h2 id="myspot-address">Mi cochera</h2>
+                <div class="banner-address" id="myspot-schedule">Lun-Vie | 08:00-18:00</div>
+            </div>
+
+            <!-- Info del espacio -->
+            <div class="spot-info-grid">
+                <div class="spot-info-item">
+                    <div class="info-label">Precio/hora</div>
+                    <div class="info-value" id="myspot-price">$500</div>
+                </div>
+                <div class="spot-info-item">
+                    <div class="info-label">Ingresos totales</div>
+                    <div class="info-value">$12.500</div>
+                </div>
+            </div>
+
+            <!-- Reservas -->
+            <h3 style="font-size:15px; color:#333; margin-bottom:12px;">Reservas</h3>
+
+            <div id="myspot-reservations">
+                <!-- Se llena dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         PANTALLA: DENUNCIA DE ESTADIA EXCEDIDA
+         El propietario reporta que el conductor no
+         retiro el vehiculo a tiempo
+         ============================================= -->
+    <div id="overstay-report" class="screen">
+        <div class="header" style="background: linear-gradient(135deg, #FF9800, #F57C00);">
+            <button class="back-btn" onclick="showScreen('my-spot-detail')">&#8592;</button>
+            <h1>Estadia Excedida</h1>
+        </div>
+        <div class="content">
+            <div class="overstay-alert-card">
+                <div class="overstay-icon">⏰</div>
+                <h3>El conductor no retiro su vehiculo</h3>
+                <p>Reporta la situacion con evidencia fotografica</p>
+            </div>
+
+            <!-- Datos de la reserva -->
+            <div style="background:var(--light-gray); border-radius:14px; padding:16px; margin-bottom:16px;">
+                <div class="overstay-detail-row">
+                    <span class="label">Conductor</span>
+                    <span class="value" id="overstay-driver">Conductor</span>
+                </div>
+                <div class="overstay-detail-row">
+                    <span class="label">Patente</span>
+                    <span class="value" id="overstay-patente">AB 123 CD</span>
+                </div>
+                <div class="overstay-detail-row">
+                    <span class="label">Hora pactada de salida</span>
+                    <span class="value" id="overstay-scheduled">13:00</span>
+                </div>
+                <div class="overstay-detail-row">
+                    <span class="label">Hora actual</span>
+                    <span class="value danger" id="overstay-current">14:35</span>
+                </div>
+                <div class="overstay-detail-row">
+                    <span class="label">Tiempo excedido</span>
+                    <span class="value danger" id="overstay-exceeded">1h 35min</span>
+                </div>
+            </div>
+
+            <!-- Foto del vehiculo todavia en el espacio -->
+            <p style="font-size:14px; font-weight:600; color:#333; margin-bottom:8px;">
+                Foto del vehiculo en tu espacio:
+            </p>
+            <div class="overstay-photo-area" id="overstay-photo" onclick="takeOverstayPhoto()">
+                <div class="cam-icon">📷</div>
+                <span id="overstay-photo-text">Toca para sacar foto como evidencia</span>
+            </div>
+
+            <div class="input-group">
+                <label>Comentario adicional (opcional)</label>
+                <input type="text" placeholder="Ej: Intente comunicarme pero no responde" id="overstay-comment">
+            </div>
+
+            <button class="btn btn-danger" onclick="submitOverstayReport()">
+                🚨 Reportar Estadia Excedida
+            </button>
+
+            <div style="margin-top:12px; padding:12px; background:#E3F2FD; border-radius:10px;">
+                <p style="font-size:12px; color:var(--primary); line-height:1.4;">
+                    <strong>💡 ¿Que pasa despues?</strong><br>
+                    Se notificara al conductor y se le cobrara un recargo por el tiempo excedido.
+                    Si no responde en 30 minutos, se escalara al municipio como infraccion de estacionamiento.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================
+         MODAL: Confirmaciones
+         ============================================= -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-title">Titulo</h3>
+            <p id="modal-text">Texto</p>
+            <button class="btn btn-primary" id="modal-btn" onclick="closeModal()">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         NOTIFICACION PUSH (simula la notificacion del celular)
+         Aparece deslizandose desde arriba cuando al conductor
+         le llega una alerta de infraccion via su aseguradora
+         ============================================= -->
+    <div class="push-notification" id="push-notification" onclick="openInfractionAlert()">
+        <div class="push-notif-icon">🚨</div>
+        <div class="push-notif-content">
+            <div class="push-notif-app">TransitAR via La Segunda</div>
+            <div class="push-notif-title">Infraccion detectada en tu vehiculo</div>
+            <div class="push-notif-body">Se detecto una infraccion. Toca para ver opciones de pago con descuento.</div>
+        </div>
+        <div class="push-notif-time">ahora</div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+</div>
+
+<!-- =============================================
+     JAVASCRIPT
+     Este es el "cerebro" de la app.
+     Controla que pasa cuando tocas botones,
+     cambia de pantalla, etc.
+     ============================================= -->
+<script>
+    // === VARIABLES GLOBALES ===
+    // Guardan el "estado" de la app (datos del usuario, etc.)
+    let currentScreen = 'welcome';
+    let userRole = '';       // 'conductor' o 'peaton'
+    let userName = '';
+    let tripActive = false;  // Si hay un viaje en curso
+    let tripSeconds = 0;     // Segundos del viaje
+    let tripInterval = null; // Temporizador del viaje
+    let userPoints = 350;    // Puntos del usuario (simulados)
+
+    // === FUNCION: Cambiar de pantalla ===
+    // Cuando tocas un boton, esta funcion "esconde" la pantalla actual
+    // y "muestra" la nueva. Es como pasar paginas.
+    function showScreen(screenId) {
+        // Esconder todas las pantallas
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        // Mostrar la que queremos
+        document.getElementById(screenId).classList.add('active');
+        currentScreen = screenId;
+
+        // Si abrimos la pantalla de denuncia, inicializar el mapa
+        // El mapa necesita que su contenedor sea visible para
+        // calcular correctamente su tamaño
+        if (screenId === 'report') {
+            setTimeout(() => initReportMap(), 100);
+        }
+    }
+
+    // === FUNCION: Seleccionar rol (conductor/peaton) ===
+    function selectRole(role) {
+        userRole = role;
+        // Resaltar la tarjeta seleccionada
+        document.getElementById('role-conductor').classList.toggle('selected', role === 'conductor');
+        document.getElementById('role-peaton').classList.toggle('selected', role === 'peaton');
+        // Mostrar campo de patente solo si es conductor
+        document.getElementById('patente-section').classList.toggle('visible', role === 'conductor');
+    }
+
+    // === FUNCION: Registrarse ===
+    function doRegister() {
+        userName = document.getElementById('reg-name').value || 'Usuario';
+        if (!userRole) {
+            showModal('Elegí tu rol', 'Selecciona si sos conductor o peatón para continuar.');
+            return;
+        }
+        setupHome();
+        showScreen('home');
+        showToast('¡Cuenta creada con éxito! 🎉');
+    }
+
+    // === FUNCION: Login ===
+    function doLogin() {
+        userName = 'Usuario';
+        userRole = 'conductor'; // Por defecto en el login demo
+        setupHome();
+        showScreen('home');
+        showToast('¡Bienvenido de vuelta! 👋');
+    }
+
+    // === FUNCION: Configurar pantalla principal segun el rol ===
+    function setupHome() {
+        document.getElementById('user-name-display').textContent = userName.split(' ')[0];
+
+        const rolLabel = userRole === 'conductor' ? '🚗 Conductor' : '🚶 Peatón';
+        document.getElementById('user-role-display').textContent = rolLabel;
+        document.getElementById('profile-name').textContent = userName;
+        document.getElementById('profile-role').textContent = rolLabel;
+
+        // Si es peaton, esconder funciones exclusivas de conductor
+        const conductorOnly = userRole === 'conductor';
+        document.getElementById('points-banner').style.display = conductorOnly ? 'block' : 'none';
+        document.getElementById('trip-action').style.display = conductorOnly ? 'block' : 'none';
+        document.getElementById('debts-action').style.display = conductorOnly ? 'block' : 'none';
+        document.getElementById('emergency-action').style.display = conductorOnly ? 'block' : 'none';
+        document.getElementById('nav-trip').style.display = conductorOnly ? 'flex' : 'none';
+        document.getElementById('profile-patente-card').style.display = conductorOnly ? 'block' : 'none';
+    }
+
+    // === FUNCION: Sacar foto (simulado) ===
+    function takePhoto() {
+        const area = document.getElementById('camera-area');
+        area.classList.add('has-photo');
+        document.getElementById('camera-text').textContent = '✓ Foto capturada';
+        showToast('📸 Foto tomada');
+    }
+
+    // === MAPA REAL CON LEAFLET ===
+    // Estas variables guardan el estado del mapa
+    let reportMap = null;      // El objeto del mapa
+    let reportMarker = null;   // El marcador (pin) en el mapa
+    let mapInitialized = false;
+
+    // Esta funcion crea el mapa cuando se abre la pantalla de denuncia
+    function initReportMap() {
+        // Si ya se creo el mapa, no lo creamos de nuevo
+        if (mapInitialized) {
+            // Pero necesitamos "refrescar" el tamaño porque
+            // Leaflet se confunde si el mapa estaba oculto
+            setTimeout(() => reportMap.invalidateSize(), 200);
+            return;
+        }
+
+        // Coordenadas por defecto: Obelisco de Buenos Aires
+        // (Si el usuario da permiso, se centra en su ubicacion real)
+        const defaultLat = -34.6037;
+        const defaultLng = -58.3816;
+
+        // L.map() crea el mapa dentro del div con id "report-map"
+        // "L" es la libreria Leaflet
+        reportMap = L.map('report-map', {
+            zoomControl: true,      // Botones de + y -
+            attributionControl: false // Esconder el texto de copyright (por estetica)
+        }).setView([defaultLat, defaultLng], 14);
+
+        // Esto agrega las "baldosas" del mapa (las imagenes que ves)
+        // OpenStreetMap las provee gratis
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(reportMap);
+
+        // Cuando el usuario TOCA el mapa, ponemos un marcador ahi
+        reportMap.on('click', function(e) {
+            placeMarker(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Intentamos obtener la ubicacion REAL del usuario
+        // navigator.geolocation es una API del navegador que
+        // pregunta "¿Permitir acceso a tu ubicacion?"
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                // Si el usuario ACEPTA compartir ubicacion:
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    reportMap.setView([lat, lng], 16);
+                    showToast('📍 Mapa centrado en tu ubicación');
+                },
+                // Si el usuario RECHAZA o hay un error:
+                function(error) {
+                    console.log('Geolocation error:', error.message);
+                    // No pasa nada, el mapa queda en Buenos Aires
+                },
+                // Opciones: queremos buena precision y maximo 10 seg de espera
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        mapInitialized = true;
+
+        // Refrescar el tamaño del mapa despues de que se muestre
+        setTimeout(() => reportMap.invalidateSize(), 300);
+    }
+
+    // Esta funcion pone un marcador (pin) en el mapa
+    function placeMarker(lat, lng) {
+        // Si ya habia un marcador, lo quitamos
+        if (reportMarker) {
+            reportMap.removeLayer(reportMarker);
+        }
+
+        // Crear el nuevo marcador en las coordenadas tocadas
+        reportMarker = L.marker([lat, lng]).addTo(reportMap);
+
+        // Popup: un cartelito que aparece sobre el marcador
+        reportMarker.bindPopup('📍 Infraccion marcada aqui').openPopup();
+
+        // Actualizar el estado visual debajo del mapa
+        const status = document.getElementById('map-status');
+        status.className = 'map-status located';
+        document.getElementById('map-status-text').textContent = '✓ Ubicación marcada correctamente';
+
+        // Reverse Geocoding: convertir coordenadas a una direccion legible
+        // Usamos la API gratuita de Nominatim (de OpenStreetMap)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.display_name) {
+                    // Mostrar la direccion debajo del mapa
+                    const address = data.display_name.split(',').slice(0, 3).join(',');
+                    document.getElementById('map-address').textContent = address;
+                }
+            })
+            .catch(() => {
+                // Si falla, mostramos las coordenadas
+                document.getElementById('map-address').textContent =
+                    `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+            });
+
+        showToast('📍 Ubicación registrada en el mapa');
+    }
+
+    // === FUNCION: Seleccionar tipo de infraccion ===
+    function toggleChip(el) {
+        el.classList.toggle('selected');
+    }
+
+    // === FUNCION: Enviar denuncia ===
+    function submitReport() {
+        // Detectar que tipo de infraccion selecciono
+        const selectedChip = document.querySelector('.infraction-chip.selected');
+        const infractionType = selectedChip ? selectedChip.textContent : 'Otra';
+
+        showModal(
+            '¡Denuncia enviada!',
+            'Tu denuncia fue registrada exitosamente. Será derivada al municipio correspondiente, que notificará a la aseguradora del vehículo. ¡Gracias por colaborar con la seguridad vial! 🚦'
+        );
+
+        // Simular que 5 segundos despues, al "otro conductor" le llega
+        // la notificacion de su aseguradora (en la demo, te llega a vos)
+        setTimeout(() => {
+            showPushNotification(infractionType);
+        }, 5000);
+        // Resetear la pantalla de denuncia
+        setTimeout(() => {
+            document.getElementById('camera-area').classList.remove('has-photo');
+            document.getElementById('camera-text').textContent = 'Toca para sacar foto';
+            // Resetear el mapa: quitar el marcador y el estado
+            if (reportMarker && reportMap) {
+                reportMap.removeLayer(reportMarker);
+                reportMarker = null;
+            }
+            const status = document.getElementById('map-status');
+            status.className = 'map-status waiting';
+            document.getElementById('map-status-text').textContent = 'Toca el mapa para marcar la ubicación';
+            document.getElementById('map-address').textContent = '';
+            document.querySelectorAll('.infraction-chip').forEach(c => c.classList.remove('selected'));
+        }, 500);
+    }
+
+    // === FUNCION: Iniciar / Detener viaje ===
+    function toggleTrip() {
+        tripActive = !tripActive;
+        const circle = document.getElementById('trip-circle');
+        const btn = document.getElementById('trip-start-btn');
+        const timer = document.getElementById('trip-timer');
+        const badge = document.getElementById('blocked-badge');
+        const icon = document.getElementById('trip-status-icon');
+        const text = document.getElementById('trip-status-text');
+
+        if (tripActive) {
+            // INICIAR viaje
+            circle.className = 'trip-circle active';
+            btn.className = 'btn btn-danger';
+            btn.innerHTML = '⏹️ Finalizar Viaje';
+            timer.style.display = 'block';
+            badge.classList.add('visible');
+            icon.textContent = '🟢';
+            text.textContent = 'Viaje en curso';
+            tripSeconds = 0;
+
+            // Iniciar cronometro
+            tripInterval = setInterval(() => {
+                tripSeconds++;
+                const h = String(Math.floor(tripSeconds / 3600)).padStart(2, '0');
+                const m = String(Math.floor((tripSeconds % 3600) / 60)).padStart(2, '0');
+                const s = String(tripSeconds % 60).padStart(2, '0');
+                timer.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+
+            showToast('🔒 Modo viaje activado');
+        } else {
+            // FINALIZAR viaje
+            clearInterval(tripInterval);
+            circle.className = 'trip-circle idle';
+            btn.className = 'btn btn-accent';
+            btn.innerHTML = '▶️ Iniciar Viaje';
+            timer.style.display = 'none';
+            badge.classList.remove('visible');
+            icon.textContent = '🚗';
+            text.textContent = 'Listo para salir';
+
+            // Sumar puntos
+            userPoints += 10;
+            document.getElementById('home-points').textContent = userPoints;
+            document.getElementById('points-total').textContent = userPoints;
+
+            showModal(
+                '¡Viaje completado! 🎉',
+                `Duración: ${document.getElementById('trip-timer').textContent}\n\n¡Sumaste +10 puntos por conducir sin usar el celular! Ya tenés ${userPoints} puntos.`
+            );
+        }
+    }
+
+    // === FUNCION: Pagar deuda (simulado) ===
+    function payDebt(btn) {
+        const item = btn.closest('.debt-item');
+        showModal('Redirigiendo al pago...', 'Serás redirigido a la plataforma de pago del municipio correspondiente.');
+        setTimeout(() => {
+            item.style.opacity = '0.4';
+            btn.textContent = 'Pagado ✓';
+            btn.disabled = true;
+            btn.style.background = 'var(--accent)';
+        }, 300);
+    }
+
+    // === FUNCION: Contactos de emergencia ===
+    function removeContact(btn) {
+        btn.closest('.emergency-contact').style.display = 'none';
+        showToast('Contacto eliminado');
+    }
+
+    function addContact() {
+        showModal('Agregar contacto', 'En la versión final, aquí se abrirá tu lista de contactos del teléfono para seleccionar uno.');
+    }
+
+    // === FUNCION: Modal (ventana emergente) ===
+    function showModal(title, text) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-text').textContent = text;
+        document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('active');
+    }
+
+    // === FUNCION: Toast (mensaje breve en la parte inferior) ===
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.remove('show');
+        // Forzar "reinicio" de animacion
+        void toast.offsetWidth;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // =============================================
+    // SISTEMA DE SEGUROS & NOTIFICACIONES
+    // Flujo: Denuncia → Municipio → Aseguradora → Conductor
+    // =============================================
+
+    let selectedPaymentOption = 'instant'; // 'instant' o 'deferred'
+    let offerTimerInterval = null;         // Timer de la oferta con descuento
+    let offerTimerSeconds = 30 * 60;       // 30 minutos para decidir
+    let currentFineAmount = 45000;         // Monto base de la multa
+    let currentDiscountPercent = 50;       // Porcentaje de descuento
+
+    // Lista de aseguradoras argentinas (simulado)
+    const insuranceCompanies = [
+        'La Segunda Seguros',
+        'Seguros Rivadavia',
+        'Federacion Patronal',
+        'Sancor Seguros',
+        'Zurich Argentina',
+        'Mapfre Argentina',
+        'La Caja Seguros',
+        'Provincia Seguros'
+    ];
+
+    // Tipos de infraccion con sus montos de multa
+    const fineAmounts = {
+        'Estacionamiento prohibido': 28000,
+        'Doble fila': 35000,
+        'Semaforo en rojo': 45000,
+        'Exceso de velocidad': 55000,
+        'Uso de celular': 40000,
+        'Sin cinturon': 25000,
+        'Senda peatonal': 30000,
+        'Otra': 20000
+    };
+
+    // --- Mostrar notificacion push ---
+    // Se llama cuando alguien envia una denuncia (simulado)
+    function showPushNotification(infractionType) {
+        const notif = document.getElementById('push-notification');
+        // Elegir aseguradora aleatoria para la demo
+        const insurance = insuranceCompanies[Math.floor(Math.random() * insuranceCompanies.length)];
+        document.querySelector('.push-notif-app').textContent = `TransitAR via ${insurance}`;
+
+        // Mostrar con animacion (desliza desde arriba)
+        notif.classList.add('visible');
+
+        // Guardar datos para cuando el usuario toque la notificacion
+        notif.dataset.infractionType = infractionType || 'Doble fila';
+        notif.dataset.insurance = insurance;
+
+        // Ocultar despues de 8 segundos si no la toca
+        setTimeout(() => {
+            notif.classList.remove('visible');
+        }, 8000);
+    }
+
+    // --- Abrir alerta de infraccion ---
+    // Se llama cuando el usuario toca la notificacion push
+    function openInfractionAlert() {
+        const notif = document.getElementById('push-notification');
+        notif.classList.remove('visible');
+
+        const infractionType = notif.dataset.infractionType || 'Doble fila';
+        const insurance = notif.dataset.insurance || 'La Segunda Seguros';
+        const fineAmount = fineAmounts[infractionType] || 35000;
+        const discountedAmount = Math.round(fineAmount * (1 - currentDiscountPercent / 100));
+
+        // Llenar datos de la pantalla
+        document.getElementById('alert-infraction-type').textContent = infractionType;
+        document.getElementById('alert-fine-amount').textContent = `$${fineAmount.toLocaleString('es-AR')}`;
+        document.getElementById('alert-insurance-name').textContent = insurance;
+        currentFineAmount = fineAmount;
+
+        // Hora actual
+        const now = new Date();
+        document.getElementById('alert-time').textContent =
+            now.getHours().toString().padStart(2,'0') + ':' +
+            now.getMinutes().toString().padStart(2,'0');
+
+        // Actualizar precios en las opciones
+        updatePaymentPrices();
+
+        // Resetear seleccion
+        selectPaymentOption('instant');
+
+        // Iniciar timer de la oferta (30 minutos)
+        offerTimerSeconds = 30 * 60;
+        clearInterval(offerTimerInterval);
+        offerTimerInterval = setInterval(() => {
+            offerTimerSeconds--;
+            if (offerTimerSeconds <= 0) {
+                clearInterval(offerTimerInterval);
+                document.getElementById('insurance-offer-timer').textContent = '00:00';
+                // Se vencio la oferta, solo queda pago total
+                selectPaymentOption('deferred');
+                document.getElementById('pay-option-instant').style.opacity = '0.4';
+                document.getElementById('pay-option-instant').style.pointerEvents = 'none';
+                return;
+            }
+            const m = String(Math.floor(offerTimerSeconds / 60)).padStart(2, '0');
+            const s = String(offerTimerSeconds % 60).padStart(2, '0');
+            document.getElementById('insurance-offer-timer').textContent = `${m}:${s}`;
+        }, 1000);
+
+        showScreen('infraction-alert');
+    }
+
+    // --- Actualizar precios segun el descuento ---
+    function updatePaymentPrices() {
+        const discountedAmount = Math.round(currentFineAmount * (1 - currentDiscountPercent / 100));
+
+        // Opcion instantanea
+        const instantOption = document.getElementById('pay-option-instant');
+        instantOption.querySelector('.option-price').innerHTML =
+            `$${discountedAmount.toLocaleString('es-AR')}` +
+            `<span class="option-original">$${currentFineAmount.toLocaleString('es-AR')}</span>` +
+            `<span class="discount-badge">-${currentDiscountPercent}%</span>`;
+
+        // Opcion diferida
+        const deferredOption = document.getElementById('pay-option-deferred');
+        deferredOption.querySelector('.option-price').textContent =
+            `$${currentFineAmount.toLocaleString('es-AR')}`;
+    }
+
+    // --- Seleccionar opcion de pago ---
+    function selectPaymentOption(option) {
+        selectedPaymentOption = option;
+        const instant = document.getElementById('pay-option-instant');
+        const deferred = document.getElementById('pay-option-deferred');
+        const btn = document.getElementById('infraction-pay-btn');
+
+        instant.classList.toggle('selected', option === 'instant');
+        deferred.classList.toggle('selected', option === 'deferred');
+
+        if (option === 'instant') {
+            const discountedAmount = Math.round(currentFineAmount * (1 - currentDiscountPercent / 100));
+            btn.innerHTML = `⚡ Pagar $${discountedAmount.toLocaleString('es-AR')} ahora`;
+            btn.className = 'btn btn-accent';
+        } else {
+            btn.innerHTML = `📄 Diferir $${currentFineAmount.toLocaleString('es-AR')} a factura`;
+            btn.className = 'btn btn-primary';
+        }
+    }
+
+    // --- Procesar pago de infraccion ---
+    function processInfractionPayment() {
+        clearInterval(offerTimerInterval);
+
+        if (selectedPaymentOption === 'instant') {
+            const discountedAmount = Math.round(currentFineAmount * (1 - currentDiscountPercent / 100));
+            showScreen('home');
+            showModal(
+                '¡Pago realizado! ✓',
+                `Pagaste $${discountedAmount.toLocaleString('es-AR')} (${currentDiscountPercent}% de descuento).\n\n` +
+                `El pago se proceso a traves de tu aseguradora. La multa queda saldada y no se suma a tu historial de infracciones.\n\n` +
+                `Ahorraste $${(currentFineAmount - discountedAmount).toLocaleString('es-AR')} por pagar al instante.`
+            );
+        } else {
+            showScreen('home');
+            showModal(
+                'Pago diferido registrado',
+                `Se agrego $${currentFineAmount.toLocaleString('es-AR')} a tu proxima factura del seguro.\n\n` +
+                `La infraccion queda registrada en tu historial. Podias haber ahorrado pagando al instante.`
+            );
+        }
+    }
+
+    // =============================================
+    // CHAT CONDUCTOR ↔ PROPIETARIO
+    // =============================================
+
+    let chatSpotId = '';  // ID del spot del chat actual
+
+    // --- Abrir chat con el propietario ---
+    function openSpotChat() {
+        const spotId = document.getElementById('parking-detail').dataset.spotId;
+        const spot = parkingSpots[spotId];
+        if (!spot || !spot.owner) {
+            showModal('Chat no disponible', 'El chat solo está disponible para cocheras privadas, no para estacionamiento medido.');
+            return;
+        }
+        chatSpotId = spotId;
+
+        // Configurar header del chat
+        document.getElementById('chat-user-name').textContent = spot.owner;
+        document.getElementById('chat-spot-label').textContent = `${spot.typeName} - ${spot.address}`;
+
+        // Limpiar mensajes anteriores y poner los iniciales
+        const messages = document.getElementById('chat-messages');
+        messages.innerHTML = `
+            <div style="text-align:center; font-size:12px; color:var(--gray); padding:10px; background:#f5f5f5; border-radius:10px;">
+                🔒 Este chat es exclusivo para coordinar el uso del espacio de estacionamiento.
+            </div>
+            <div class="chat-bubble received">
+                Hola! El espacio está disponible. ¿Tenés alguna consulta antes de reservar?
+                <span class="chat-time">${getCurrentTime()}</span>
+            </div>
+        `;
+
+        showScreen('spot-chat');
+    }
+
+    // --- Enviar mensaje en el chat ---
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const messages = document.getElementById('chat-messages');
+
+        // Agregar burbuja del mensaje enviado
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble sent';
+        bubble.innerHTML = `${escapeHtml(text)}<span class="chat-time">${getCurrentTime()}</span>`;
+        messages.appendChild(bubble);
+
+        input.value = '';
+
+        // Scroll al ultimo mensaje
+        messages.scrollTop = messages.scrollHeight;
+
+        // Simular respuesta automatica del propietario despues de 1-2 seg
+        setTimeout(() => {
+            const responses = [
+                '¡Perfecto! Te espero. Recordá que el portón es el negro.',
+                'Sin problema. ¿A qué hora pensás llegar?',
+                'Dale, el espacio está libre toda la tarde.',
+                'Cualquier cosa me escribís por acá cuando llegues.',
+                '¡Genial! El espacio está marcado con el número 3.',
+                'Sí, hay lugar para autos grandes también. No hay problema.'
+            ];
+            const response = responses[Math.floor(Math.random() * responses.length)];
+
+            const replyBubble = document.createElement('div');
+            replyBubble.className = 'chat-bubble received';
+            replyBubble.innerHTML = `${response}<span class="chat-time">${getCurrentTime()}</span>`;
+            messages.appendChild(replyBubble);
+            messages.scrollTop = messages.scrollHeight;
+        }, 1000 + Math.random() * 1500);
+    }
+
+    // --- Helper: hora actual como string ---
+    function getCurrentTime() {
+        const now = new Date();
+        return now.getHours().toString().padStart(2,'0') + ':' +
+               now.getMinutes().toString().padStart(2,'0');
+    }
+
+    // --- Helper: escapar HTML para evitar inyeccion ---
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // =============================================
+    // PRE-PAGO: Seleccion de horario + pago
+    // =============================================
+
+    let prePaySpotRate = 0;       // Tarifa del spot seleccionado
+    let prePayHours = 4;          // Horas seleccionadas
+    let selectedPayMethod = 'wallet'; // Metodo de pago
+
+    // --- Abrir pantalla de pre-pago ---
+    function openPrePayment() {
+        const spotId = document.getElementById('parking-detail').dataset.spotId;
+        const spot = parkingSpots[spotId];
+        if (!spot) return;
+
+        prePaySpotRate = spot.price;
+
+        // Llenar datos del spot
+        document.getElementById('prepay-icon').textContent = spot.icon;
+        document.getElementById('prepay-name').textContent = spot.name;
+        document.getElementById('prepay-address').textContent = spot.address;
+
+        // Configurar hora de llegada como "ahora" y salida +4h
+        const now = new Date();
+        const fromTime = now.getHours().toString().padStart(2,'0') + ':' +
+                         now.getMinutes().toString().padStart(2,'0');
+        const toDate = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+        const toTime = toDate.getHours().toString().padStart(2,'0') + ':' +
+                        toDate.getMinutes().toString().padStart(2,'0');
+
+        document.getElementById('prepay-from').value = fromTime;
+        document.getElementById('prepay-to').value = toTime;
+
+        prePayHours = 4;
+        updatePrePayTotal();
+
+        showScreen('pre-payment');
+    }
+
+    // --- Seleccionar duracion rapida ---
+    function setDuration(hours, el) {
+        // Resaltar chip seleccionado
+        document.querySelectorAll('.duration-chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+
+        prePayHours = hours;
+
+        // Actualizar hora de salida basada en la llegada
+        const fromInput = document.getElementById('prepay-from');
+        const fromParts = fromInput.value.split(':');
+        const fromDate = new Date();
+        fromDate.setHours(parseInt(fromParts[0]), parseInt(fromParts[1]));
+
+        const toDate = new Date(fromDate.getTime() + hours * 60 * 60 * 1000);
+        document.getElementById('prepay-to').value =
+            toDate.getHours().toString().padStart(2,'0') + ':' +
+            toDate.getMinutes().toString().padStart(2,'0');
+
+        updatePrePayTotal();
+    }
+
+    // --- Actualizar total del pre-pago ---
+    function updatePrePayTotal() {
+        const from = document.getElementById('prepay-from').value;
+        const to = document.getElementById('prepay-to').value;
+
+        // Calcular diferencia en horas
+        const fromParts = from.split(':');
+        const toParts = to.split(':');
+        const fromMinutes = parseInt(fromParts[0]) * 60 + parseInt(fromParts[1]);
+        const toMinutes = parseInt(toParts[0]) * 60 + parseInt(toParts[1]);
+        let diffMinutes = toMinutes - fromMinutes;
+        if (diffMinutes <= 0) diffMinutes += 24 * 60; // Si cruza medianoche
+
+        const hours = Math.ceil(diffMinutes / 60); // Redondear hacia arriba
+        prePayHours = hours;
+
+        const total = hours * prePaySpotRate;
+        document.getElementById('prepay-total').textContent = `$${total.toLocaleString('es-AR')}`;
+        document.getElementById('prepay-detail').textContent =
+            `${hours} hora${hours > 1 ? 's' : ''} x $${prePaySpotRate}/hora`;
+    }
+
+    // --- Seleccionar metodo de pago ---
+    function selectPayMethod(el, method) {
+        selectedPayMethod = method;
+        document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    // --- Confirmar pre-pago y reservar ---
+    function confirmPrePayment() {
+        const spotId = document.getElementById('parking-detail').dataset.spotId;
+        const spot = parkingSpots[spotId];
+        const from = document.getElementById('prepay-from').value;
+        const to = document.getElementById('prepay-to').value;
+        const total = prePayHours * prePaySpotRate;
+        const methodLabel = selectedPayMethod === 'wallet' ? 'Billetera Virtual' : 'Tarjeta';
+
+        // Configurar sesion activa
+        document.getElementById('session-icon').textContent = spot.icon;
+        document.getElementById('session-name').textContent = spot.name;
+        document.getElementById('session-address').textContent = spot.address;
+        document.getElementById('session-type').textContent = spot.typeName;
+        document.getElementById('session-rate').textContent = `$${spot.price}/hora`;
+        document.getElementById('session-end-limit').textContent = to;
+        document.getElementById('session-start-time').textContent = from;
+
+        // El costo ya esta fijado (pre-pagado)
+        currentSpotRate = spot.price;
+        parkingSessionSeconds = 0;
+
+        document.getElementById('parking-timer').textContent = '00:00:00';
+        document.getElementById('parking-cost').textContent = `$${total.toLocaleString('es-AR')}`;
+
+        // Timer solo para mostrar tiempo transcurrido (el monto ya se pago)
+        clearInterval(parkingSessionInterval);
+        parkingSessionInterval = setInterval(() => {
+            parkingSessionSeconds++;
+            const h = String(Math.floor(parkingSessionSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((parkingSessionSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(parkingSessionSeconds % 60).padStart(2, '0');
+            document.getElementById('parking-timer').textContent = `${h}:${m}:${s}`;
+        }, 1000);
+
+        showScreen('parking-session');
+        showModal(
+            '¡Reserva confirmada! ✓',
+            `Pagaste $${total.toLocaleString('es-AR')} via ${methodLabel}.\n\n` +
+            `Espacio: ${spot.name}\n` +
+            `Horario: ${from} a ${to}\n\n` +
+            `Recordá retirar tu vehículo antes de las ${to}. ¡Buen viaje! 🚗`
+        );
+    }
+
+    // =============================================
+    // DENUNCIA DE ESTADIA EXCEDIDA (propietario)
+    // =============================================
+
+    // --- Abrir reporte de estadia excedida ---
+    // En una app real, esto apareceria cuando el horario se excede
+    function openOverstayReport(driverName, patente, scheduledEnd) {
+        const now = new Date();
+        const currentTime = now.getHours().toString().padStart(2,'0') + ':' +
+                           now.getMinutes().toString().padStart(2,'0');
+
+        document.getElementById('overstay-driver').textContent = driverName || 'Conductor';
+        document.getElementById('overstay-patente').textContent = patente || 'AB 123 CD';
+        document.getElementById('overstay-scheduled').textContent = scheduledEnd || '13:00';
+        document.getElementById('overstay-current').textContent = currentTime;
+
+        // Calcular tiempo excedido
+        const schedParts = (scheduledEnd || '13:00').split(':');
+        const schedMinutes = parseInt(schedParts[0]) * 60 + parseInt(schedParts[1]);
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const exceededMinutes = Math.max(0, nowMinutes - schedMinutes);
+        const excH = Math.floor(exceededMinutes / 60);
+        const excM = exceededMinutes % 60;
+        document.getElementById('overstay-exceeded').textContent =
+            excH > 0 ? `${excH}h ${excM}min` : `${excM}min`;
+
+        // Resetear foto
+        document.getElementById('overstay-photo').classList.remove('has-photo');
+        document.getElementById('overstay-photo-text').textContent = 'Toca para sacar foto como evidencia';
+
+        showScreen('overstay-report');
+    }
+
+    // --- Sacar foto de evidencia ---
+    function takeOverstayPhoto() {
+        const area = document.getElementById('overstay-photo');
+        area.classList.add('has-photo');
+        document.getElementById('overstay-photo-text').textContent = '✓ Foto de evidencia capturada';
+        showToast('📸 Foto tomada como evidencia');
+    }
+
+    // --- Enviar reporte de estadia excedida ---
+    function submitOverstayReport() {
+        const hasPhoto = document.getElementById('overstay-photo').classList.contains('has-photo');
+        if (!hasPhoto) {
+            showModal('Foto requerida', 'Necesitás sacar una foto del vehículo todavía en tu espacio como evidencia.');
+            return;
+        }
+
+        showScreen('my-spot-detail');
+        showModal(
+            '¡Reporte enviado! ✓',
+            'Se notificó al conductor que excedió su horario.\n\n' +
+            'Se le cobrará un recargo por el tiempo extra. Si no retira el vehículo en 30 minutos, ' +
+            'se escalará al municipio como infracción de estacionamiento.\n\n' +
+            'Te mantendremos informado del estado.'
+        );
+    }
+
+    // --- Abrir detalle de mi cochera con reservas ---
+    function openMySpotDetail(spotIndex) {
+        const spot = publishedSpots[spotIndex];
+        if (!spot) return;
+
+        // Llenar datos del banner
+        document.getElementById('myspot-address').textContent = spot.address;
+        document.getElementById('myspot-schedule').textContent = spot.days ? `${spot.days} | ${spot.from}-${spot.to}` : spot.schedule || '';
+        document.getElementById('myspot-price').textContent = `$${spot.price}`;
+
+        // Si no tiene reservas simuladas, crearlas para la demo
+        if (!spot.reservations) {
+            const now = new Date();
+            const currentH = now.getHours();
+            spot.reservations = [
+                {
+                    driver: 'Juan Perez',
+                    patente: 'AC 456 BD',
+                    from: String(currentH - 3).padStart(2,'0') + ':00',
+                    to: String(currentH - 1).padStart(2,'0') + ':00',
+                    status: 'overstay' // Excedio el horario
+                },
+                {
+                    driver: 'Maria Lopez',
+                    patente: 'AE 789 FG',
+                    from: String(currentH).padStart(2,'0') + ':00',
+                    to: String(currentH + 2).padStart(2,'0') + ':00',
+                    status: 'active' // Reserva activa en horario
+                },
+                {
+                    driver: 'Carlos Ruiz',
+                    patente: 'AF 321 HI',
+                    from: '08:00',
+                    to: '10:00',
+                    status: 'completed' // Ya terminó
+                }
+            ];
+        }
+
+        // Renderizar reservas
+        const container = document.getElementById('myspot-reservations');
+        container.innerHTML = '';
+
+        spot.reservations.forEach((res, resIndex) => {
+            const statusLabel = {
+                'active': 'En curso',
+                'overstay': 'Excedida',
+                'completed': 'Finalizada'
+            };
+            const statusClass = {
+                'active': 'status-active',
+                'overstay': 'status-overstay',
+                'completed': 'status-completed'
+            };
+            const cardClass = res.status === 'overstay' ? 'overstay' :
+                              res.status === 'active' ? 'active-res' : '';
+
+            let actionBtn = '';
+            if (res.status === 'overstay') {
+                actionBtn = `
+                    <button class="btn btn-danger" onclick="openOverstayReport('${res.driver}', '${res.patente}', '${res.to}')" style="margin-top:10px; padding:12px; font-size:13px;">
+                        🚨 Reportar estadia excedida
+                    </button>
+                `;
+            } else if (res.status === 'active') {
+                actionBtn = `
+                    <div style="margin-top:10px; padding:10px; background:#E8F5E9; border-radius:8px; text-align:center;">
+                        <span style="font-size:12px; color:#2E7D32; font-weight:500;">✓ Reserva en curso - todo en orden</span>
+                    </div>
+                `;
+            }
+
+            container.innerHTML += `
+                <div class="reservation-card ${cardClass}">
+                    <div class="reservation-header">
+                        <div class="reservation-avatar">🚗</div>
+                        <div class="reservation-user-info">
+                            <div class="res-name">${res.driver}</div>
+                            <div class="res-patente">Patente: ${res.patente}</div>
+                        </div>
+                        <div class="reservation-status-badge ${statusClass[res.status]}">
+                            ${statusLabel[res.status]}
+                        </div>
+                    </div>
+                    <div class="reservation-times">
+                        <div class="time-block">
+                            <div class="time-label">Llegada</div>
+                            <div class="time-value">${res.from}</div>
+                        </div>
+                        <div class="time-block">
+                            <div class="time-label">Salida pactada</div>
+                            <div class="time-value" ${res.status === 'overstay' ? 'style="color:var(--danger);"' : ''}>${res.to}</div>
+                        </div>
+                    </div>
+                    ${actionBtn}
+                </div>
+            `;
+        });
+
+        if (spot.reservations.length === 0) {
+            container.innerHTML = `
+                <div class="no-reservations">
+                    <div class="empty-icon">📭</div>
+                    <p>No hay reservas en este momento</p>
+                </div>
+            `;
+        }
+
+        showScreen('my-spot-detail');
+    }
+
+    // =============================================
+    // SISTEMA DE ESTACIONAMIENTO
+    // =============================================
+
+    // --- Variables del sistema de estacionamiento ---
+    let parkingSearchMap = null;        // Mapa de busqueda
+    let parkingSearchInitialized = false;
+    let offerMap = null;                // Mapa del formulario "ofrecer"
+    let offerMapInitialized = false;
+    let offerMarker = null;             // Pin en el mapa de ofrecer
+    let detailMap = null;               // Mapa del detalle
+    let detailMapInitialized = false;
+    let parkingSessionInterval = null;  // Timer de la sesion activa
+    let parkingSessionSeconds = 0;      // Segundos transcurridos
+    let currentSpotRate = 0;            // Tarifa por hora del spot activo
+    let publishedSpots = [];            // Espacios que el usuario publico
+
+    // --- Datos simulados de estacionamientos disponibles ---
+    // En una app real estos datos vendrian de un servidor (API/base de datos)
+    const parkingSpots = {
+        private1: {
+            type: 'private',
+            name: 'Cochera de Martin',
+            address: 'Av. Corrientes 1842',
+            lat: -34.6045,
+            lng: -58.3920,
+            price: 500,
+            distance: '350m',
+            hours: '8:00 - 18:00',
+            owner: 'Martin Rodriguez',
+            rating: '4.8',
+            rentals: 23,
+            instructions: 'Tocar timbre 2B, porton negro a la derecha',
+            icon: '🏠',
+            typeName: 'Cochera privada'
+        },
+        metered1: {
+            type: 'metered',
+            name: 'Est. Medido Municipal',
+            address: 'Calle Florida 620',
+            lat: -34.6030,
+            lng: -58.3780,
+            price: 200,
+            distance: '120m',
+            hours: '8:00 - 20:00',
+            owner: null,
+            icon: '🅿️',
+            typeName: 'Estacionamiento medido'
+        },
+        private2: {
+            type: 'private',
+            name: 'Garage de Ana',
+            address: 'Tucuman 1350',
+            lat: -34.6010,
+            lng: -58.3850,
+            price: 400,
+            distance: '500m',
+            hours: '9:00 - 17:00',
+            owner: 'Ana Gutierrez',
+            rating: '4.5',
+            rentals: 11,
+            instructions: 'Puerta gris, cochera #3',
+            icon: '🏠',
+            typeName: 'Cochera privada'
+        }
+    };
+
+    // --- Inicializar mapa de busqueda ---
+    // Se llama cuando el usuario abre la pantalla "Buscar Estacionamiento"
+    function initParkingSearchMap() {
+        if (parkingSearchInitialized) {
+            setTimeout(() => parkingSearchMap.invalidateSize(), 200);
+            return;
+        }
+
+        const defaultLat = -34.6037;
+        const defaultLng = -58.3816;
+
+        parkingSearchMap = L.map('parking-search-map', {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([defaultLat, defaultLng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(parkingSearchMap);
+
+        // Agregar marcadores de cada estacionamiento disponible
+        // Cada marcador tiene un color distinto segun el tipo
+        Object.keys(parkingSpots).forEach(key => {
+            const spot = parkingSpots[key];
+
+            // Creamos un "icono personalizado" con HTML
+            // divIcon permite usar HTML/CSS como icono del marcador
+            const icon = L.divIcon({
+                html: `<div style="
+                    background: ${spot.type === 'private' ? '#4CAF50' : '#1565C0'};
+                    color: white;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                ">${spot.type === 'private' ? '🏠' : '🅿️'}</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                className: '' // Evitar estilos por defecto de Leaflet
+            });
+
+            const marker = L.marker([spot.lat, spot.lng], { icon: icon })
+                .addTo(parkingSearchMap);
+
+            // Al tocar un marcador, abre el detalle de ese spot
+            marker.bindPopup(`
+                <div style="text-align:center; min-width:120px;">
+                    <strong>${spot.name}</strong><br>
+                    <span style="color:#00A844; font-weight:700;">$${spot.price}/h</span><br>
+                    <span style="font-size:11px; color:#757575;">${spot.address}</span>
+                </div>
+            `);
+
+            marker.on('click', () => marker.openPopup());
+        });
+
+        // Geolocalización
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    parkingSearchMap.setView(
+                        [position.coords.latitude, position.coords.longitude], 16
+                    );
+                },
+                function() {},
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        parkingSearchInitialized = true;
+        setTimeout(() => parkingSearchMap.invalidateSize(), 300);
+    }
+
+    // --- Inicializar mapa del formulario "ofrecer" ---
+    function initOfferMap() {
+        if (offerMapInitialized) {
+            setTimeout(() => offerMap.invalidateSize(), 200);
+            return;
+        }
+
+        offerMap = L.map('offer-map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([-34.6037, -58.3816], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(offerMap);
+
+        // Al tocar el mapa, poner un pin y autocompletar la direccion
+        offerMap.on('click', function(e) {
+            if (offerMarker) offerMap.removeLayer(offerMarker);
+            offerMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(offerMap);
+
+            // Reverse geocoding para llenar el campo de direccion
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&zoom=18`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.display_name) {
+                        const addr = data.display_name.split(',').slice(0, 2).join(',');
+                        document.getElementById('offer-address').value = addr;
+                    }
+                })
+                .catch(() => {});
+
+            showToast('📍 Ubicación marcada');
+        });
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    offerMap.setView([pos.coords.latitude, pos.coords.longitude], 16);
+                },
+                function() {},
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        offerMapInitialized = true;
+        setTimeout(() => offerMap.invalidateSize(), 300);
+    }
+
+    // --- Filtros de busqueda ---
+    function toggleParkingFilter(el, type) {
+        // Desactivar todos los filtros y activar el tocado
+        document.querySelectorAll('.parking-filter').forEach(f => f.classList.remove('active'));
+        el.classList.add('active');
+
+        // Filtrar las tarjetas de resultados
+        const cards = document.querySelectorAll('.parking-spot-card');
+        cards.forEach(card => {
+            const onclick = card.getAttribute('onclick');
+            if (type === 'all') {
+                card.style.display = 'flex';
+            } else if (type === 'private') {
+                card.style.display = onclick.includes('private') ? 'flex' : 'none';
+            } else if (type === 'metered') {
+                card.style.display = onclick.includes('metered') ? 'flex' : 'none';
+            }
+        });
+
+        // Actualizar titulo de resultados
+        const visible = document.querySelectorAll('.parking-spot-card[style*="flex"], .parking-spot-card:not([style])');
+        document.getElementById('parking-results-title').textContent =
+            `${visible.length} lugares disponibles cerca`;
+    }
+
+    // --- Mostrar detalle de un estacionamiento ---
+    function showParkingDetail(spotId) {
+        const spot = parkingSpots[spotId];
+        if (!spot) return;
+
+        // Llenar los datos de la pantalla de detalle
+        document.getElementById('detail-icon').textContent = spot.icon;
+        document.getElementById('detail-name').textContent = spot.name;
+        document.getElementById('detail-address').textContent = spot.address;
+        document.getElementById('detail-price').textContent = `$${spot.price}/h`;
+        document.getElementById('detail-distance').textContent = spot.distance;
+        document.getElementById('detail-type').textContent = spot.typeName;
+        document.getElementById('detail-hours').textContent = spot.hours;
+
+        // Mostrar/ocultar info del propietario (solo cocheras privadas)
+        const ownerCard = document.getElementById('detail-owner-card');
+        if (spot.owner) {
+            ownerCard.style.display = 'flex';
+            document.getElementById('detail-owner').textContent = spot.owner;
+        } else {
+            ownerCard.style.display = 'none';
+        }
+
+        // Instrucciones
+        const instrDiv = document.getElementById('detail-instructions');
+        if (spot.instructions) {
+            instrDiv.style.display = 'block';
+            document.getElementById('detail-instructions-text').textContent = spot.instructions;
+        } else {
+            instrDiv.style.display = 'none';
+        }
+
+        // Guardar datos del spot actual para cuando reserve
+        document.getElementById('parking-detail').dataset.spotId = spotId;
+
+        showScreen('parking-detail');
+
+        // Inicializar mapa del detalle
+        setTimeout(() => {
+            if (detailMap) {
+                detailMap.remove();
+                detailMap = null;
+            }
+            detailMap = L.map('spot-detail-map', {
+                zoomControl: false,
+                attributionControl: false,
+                dragging: false
+            }).setView([spot.lat, spot.lng], 16);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(detailMap);
+
+            L.marker([spot.lat, spot.lng]).addTo(detailMap);
+            setTimeout(() => detailMap.invalidateSize(), 200);
+        }, 200);
+    }
+
+    // --- Reservar un estacionamiento ---
+    function reserveSpot() {
+        const spotId = document.getElementById('parking-detail').dataset.spotId;
+        const spot = parkingSpots[spotId];
+
+        // Configurar la sesion activa
+        document.getElementById('session-icon').textContent = spot.icon;
+        document.getElementById('session-name').textContent = spot.name;
+        document.getElementById('session-address').textContent = spot.address;
+        document.getElementById('session-type').textContent = spot.typeName;
+        document.getElementById('session-rate').textContent = `$${spot.price}/hora`;
+        document.getElementById('session-end-limit').textContent = spot.hours.split(' - ')[1] || '20:00';
+
+        // Hora de inicio
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2,'0') + ':' +
+                        now.getMinutes().toString().padStart(2,'0');
+        document.getElementById('session-start-time').textContent = timeStr;
+
+        // Guardar tarifa para calcular costo
+        currentSpotRate = spot.price;
+        parkingSessionSeconds = 0;
+
+        // Iniciar el timer
+        document.getElementById('parking-timer').textContent = '00:00:00';
+        document.getElementById('parking-cost').textContent = '$0';
+
+        parkingSessionInterval = setInterval(() => {
+            parkingSessionSeconds++;
+            // Actualizar timer
+            const h = String(Math.floor(parkingSessionSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((parkingSessionSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(parkingSessionSeconds % 60).padStart(2, '0');
+            document.getElementById('parking-timer').textContent = `${h}:${m}:${s}`;
+
+            // Calcular costo: tarifa por hora / 3600 = tarifa por segundo
+            const cost = Math.round((parkingSessionSeconds / 3600) * currentSpotRate);
+            document.getElementById('parking-cost').textContent = `$${cost}`;
+        }, 1000);
+
+        showScreen('parking-session');
+        showToast('🅿️ ¡Estacionamiento reservado!');
+    }
+
+    // --- Finalizar sesion de estacionamiento ---
+    function endParkingSession() {
+        clearInterval(parkingSessionInterval);
+
+        const duration = document.getElementById('parking-timer').textContent;
+        const cost = document.getElementById('parking-cost').textContent;
+        const name = document.getElementById('session-name').textContent;
+
+        showScreen('parking-hub');
+        showModal(
+            '¡Estacionamiento finalizado!',
+            `Estuviste en "${name}" durante ${duration}.\n\nTotal a pagar: ${cost}\n\nEl pago se procesará automáticamente. ¡Gracias por usar TransitAR! 🚗`
+        );
+    }
+
+    // --- Publicar espacio ---
+    function publishSpot() {
+        const address = document.getElementById('offer-address').value;
+        const price = document.getElementById('offer-price').value;
+        const from = document.getElementById('offer-from').value;
+        const to = document.getElementById('offer-to').value;
+
+        if (!address) {
+            showModal('Falta la direccion', 'Ingresa la dirección de tu espacio o marcala en el mapa.');
+            return;
+        }
+
+        // Obtener dias seleccionados
+        const days = [];
+        document.querySelectorAll('#offer-days .time-slot.selected').forEach(d => {
+            days.push(d.textContent);
+        });
+
+        // Agregar a la lista de mis espacios publicados
+        publishedSpots.push({
+            address: address,
+            price: price || '500',
+            from: from,
+            to: to,
+            days: days.join(', ') || 'Todos los dias',
+            active: true
+        });
+
+        // Mostrar seccion "Mis espacios" en el hub
+        renderMySpots();
+
+        // Limpiar formulario
+        document.getElementById('offer-address').value = '';
+        document.getElementById('offer-price').value = '';
+        if (offerMarker && offerMap) {
+            offerMap.removeLayer(offerMarker);
+            offerMarker = null;
+        }
+        document.querySelectorAll('#offer-days .time-slot').forEach(d => d.classList.remove('selected'));
+
+        showScreen('parking-hub');
+        showModal(
+            '¡Espacio publicado!',
+            `Tu espacio en "${address}" ya está visible para otros conductores.\n\nPrecio: $${price || '500'}/hora\nHorario: ${from} a ${to}\n\nTe notificaremos cuando alguien lo reserve. 🏠`
+        );
+    }
+
+    // --- Renderizar mis espacios como tarjetas clickeables ---
+    // Al tocar una cochera, se abre su detalle con reservas
+    function renderMySpots() {
+        if (publishedSpots.length === 0) {
+            document.getElementById('my-spots-section').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('my-spots-section').style.display = 'block';
+        const list = document.getElementById('my-spots-list');
+        list.innerHTML = '';
+
+        publishedSpots.forEach((spot, index) => {
+            const activeCount = spot.reservations ? spot.reservations.filter(r => r.status !== 'completed').length : 0;
+            list.innerHTML += `
+                <div class="my-spot-card" style="cursor:pointer;" onclick="openMySpotDetail(${index})">
+                    <div class="my-spot-status ${spot.active ? 'active' : 'inactive'}"></div>
+                    <div class="my-spot-info">
+                        <div class="spot-addr">${spot.address}</div>
+                        <div class="spot-schedule">${spot.days} | ${spot.from}-${spot.to}</div>
+                        ${activeCount > 0 ? `<div style="font-size:11px; color:var(--primary); margin-top:4px; font-weight:600;">${activeCount} reserva${activeCount > 1 ? 's' : ''} activa${activeCount > 1 ? 's' : ''}</div>` : ''}
+                    </div>
+                    <div class="my-spot-price">$${spot.price}/h</div>
+                </div>
+            `;
+        });
+    }
+
+    // --- Actualizar showScreen para inicializar mapas ---
+    // Guardamos la funcion original y la extendemos
+    const _originalShowScreen = showScreen;
+    showScreen = function(screenId) {
+        _originalShowScreen(screenId);
+
+        // Inicializar mapas cuando se abre cada pantalla
+        if (screenId === 'parking-search') {
+            setTimeout(() => initParkingSearchMap(), 100);
+        } else if (screenId === 'parking-offer') {
+            setTimeout(() => initOfferMap(), 100);
+        }
+    };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "transit-app",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3000", "C:/Users/Lisandro/Documents/Proyectos/transit-app"],
+      "port": 3000
+    }
+  ]
+}
