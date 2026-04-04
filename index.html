@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>TransitAR - Seguridad Vial</title>
+    <title>Transitar - Seguridad Vial</title>
+
+    <!-- PWA: Manifest y meta tags para instalacion en celular -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Transitar">
+    <link rel="apple-touch-icon" href="./icon-192.png">
 
     <!-- ============================================
          LEAFLET: Libreria gratuita para mapas interactivos
@@ -2323,7 +2331,7 @@
     <div id="welcome" class="screen active">
         <div class="content">
             <div class="app-logo">🚦</div>
-            <div class="app-title">TransitAR</div>
+            <div class="app-title">Transitar</div>
             <div class="app-subtitle">Seguridad vial colaborativa<br>para las ciudades argentinas</div>
             <div class="welcome-buttons">
                 <button class="btn" onclick="showScreen('login')">Iniciar Sesion</button>
@@ -2342,7 +2350,7 @@
             <h1>Crear Cuenta</h1>
         </div>
         <div class="content">
-            <p style="font-size:14px; color:#555; margin-bottom:16px; font-weight:500;">¿Como vas a usar TransitAR?</p>
+            <p style="font-size:14px; color:#555; margin-bottom:16px; font-weight:500;">¿Como vas a usar Transitar?</p>
 
             <div class="role-selector">
                 <div class="role-card" onclick="selectRole('conductor')" id="role-conductor">
@@ -2452,7 +2460,7 @@
          ============================================= -->
     <div id="home" class="screen">
         <div class="header">
-            <h1>🚦 TransitAR</h1>
+            <h1>🚦 Transitar</h1>
         </div>
         <div class="content">
             <div class="user-welcome">
@@ -3517,7 +3525,7 @@
     <div class="push-notification" id="push-notification" onclick="openInfractionAlert()">
         <div class="push-notif-icon">🚨</div>
         <div class="push-notif-content">
-            <div class="push-notif-app">TransitAR via La Segunda</div>
+            <div class="push-notif-app">Transitar via La Segunda</div>
             <div class="push-notif-title">Infraccion detectada en tu vehiculo</div>
             <div class="push-notif-body">Se detecto una infraccion. Toca para ver opciones de pago con descuento.</div>
         </div>
@@ -3904,7 +3912,7 @@
         const notif = document.getElementById('push-notification');
         // Elegir aseguradora aleatoria para la demo
         const insurance = insuranceCompanies[Math.floor(Math.random() * insuranceCompanies.length)];
-        document.querySelector('.push-notif-app').textContent = `TransitAR via ${insurance}`;
+        document.querySelector('.push-notif-app').textContent = `Transitar via ${insurance}`;
 
         // Mostrar con animacion (desliza desde arriba)
         notif.classList.add('visible');
@@ -4754,7 +4762,7 @@
         showScreen('parking-hub');
         showModal(
             '¡Estacionamiento finalizado!',
-            `Estuviste en "${name}" durante ${duration}.\n\nTotal a pagar: ${cost}\n\nEl pago se procesará automáticamente. ¡Gracias por usar TransitAR! 🚗`
+            `Estuviste en "${name}" durante ${duration}.\n\nTotal a pagar: ${cost}\n\nEl pago se procesará automáticamente. ¡Gracias por usar Transitar! 🚗`
         );
     }
 
@@ -4846,6 +4854,13 @@
             setTimeout(() => initOfferMap(), 100);
         }
     };
+</script>
+
+<!-- Registro del Service Worker para PWA -->
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js');
+    }
 </script>
 
 </body>
