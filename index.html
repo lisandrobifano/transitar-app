@@ -7,7 +7,7 @@
 
     <!-- PWA: Manifest y meta tags para instalacion en celular -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#1a2e4a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Transitar">
@@ -96,15 +96,16 @@
            seguridad y confianza
            ============================================ */
         :root {
-            --primary: #1565C0;
-            --primary-dark: #0D47A1;
-            --primary-light: #42A5F5;
+            --primary: #2563EB;
+            --primary-dark: #1a2e4a;
+            --primary-light: #60a5fa;
+            --primary-mid: #1e3a5f;
             --accent: #00C853;
             --accent-dark: #00A844;
             --danger: #E53935;
             --warning: #FF9800;
-            --gray: #757575;
-            --light-gray: #f5f5f5;
+            --gray: #6b7280;
+            --light-gray: #f7fafc;
             --white: #ffffff;
         }
 
@@ -146,8 +147,8 @@
            ============================================ */
         .bottom-nav {
             display: flex;
-            background: white;
-            border-top: 1px solid #e0e0e0;
+            background: var(--primary-dark);
+            border-top: none;
             padding: 8px 0;
             padding-bottom: 20px;
         }
@@ -162,13 +163,17 @@
             cursor: pointer;
             border: none;
             background: none;
-            color: var(--gray);
+            color: rgba(255,255,255,0.5);
             font-size: 11px;
             transition: color 0.2s;
         }
 
         .nav-item.active {
-            color: var(--primary);
+            color: #ffffff;
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--primary-light);
         }
 
         .nav-item .nav-icon {
@@ -283,7 +288,7 @@
             justify-content: center;
             text-align: center;
             padding: 40px 30px;
-            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+            background: linear-gradient(180deg, #0a1628 0%, var(--primary-mid) 50%, var(--primary) 100%);
             color: white;
         }
 
@@ -409,7 +414,7 @@
         }
 
         .points-banner {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, #0f2a4a, var(--primary-mid));
             border-radius: 20px;
             padding: 24px;
             color: white;

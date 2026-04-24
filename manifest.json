@@ -4,8 +4,8 @@
   "description": "Plataforma de seguridad vial para ciudades argentinas",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#667eea",
+  "background_color": "#1a2e4a",
+  "theme_color": "#1a2e4a",
   "orientation": "portrait",
   "icons": [
     {
