@@ -7,11 +7,16 @@
 
     <!-- PWA: Manifest y meta tags para instalacion en celular -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#1a2e4a">
+    <meta name="theme-color" content="#162257">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Transitar">
     <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <!-- Tipografia de marca: Montserrat (Google Fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
 
     <!-- ============================================
          LEAFLET: Libreria gratuita para mapas interactivos
@@ -36,8 +41,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Montserrat', 'Segoe UI', Tahoma, sans-serif;
+            color: var(--text);
+            background: var(--light-gray);
             /* Esto centra la app como si fuera un celular */
             display: flex;
             justify-content: center;
@@ -85,27 +91,36 @@
             display: flex;
         }
 
+        button, input, select, textarea {
+            font-family: inherit;
+        }
+
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
         }
 
         /* ============================================
-           COLORES DE LA APP
-           Usamos azul y verde que transmiten
-           seguridad y confianza
+           COLORES DE LA APP (Manual de Marca Transitar)
+           Azul noche #162257 y Cian #00AAE0 son los colores
+           de marca. El verde se reserva para estados de exito
+           (pago confirmado, lugar disponible).
            ============================================ */
         :root {
-            --primary: #2563EB;
-            --primary-dark: #1a2e4a;
-            --primary-light: #60a5fa;
-            --primary-mid: #1e3a5f;
+            --primary: #162257;
+            --primary-dark: #0d1640;
+            --primary-mid: #1f3170;
+            --primary-light: #00AAE0;
+            --cyan: #00AAE0;
+            --cyan-tint: #E6F6FC;
             --accent: #00C853;
             --accent-dark: #00A844;
             --danger: #E53935;
             --warning: #FF9800;
-            --gray: #6b7280;
-            --light-gray: #f7fafc;
+            --text: #3C3C3B;
+            --gray: #737372;
+            --brand-gray: #9D9D9C;
+            --light-gray: #EDEDEE;
             --white: #ffffff;
         }
 
@@ -114,6 +129,7 @@
            ============================================ */
         .header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-bottom: 3px solid var(--cyan);
             color: white;
             padding: 16px 20px;
             padding-top: 40px;
@@ -208,7 +224,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, var(--primary), var(--primary-mid));
             color: white;
         }
 
@@ -288,29 +304,25 @@
             justify-content: center;
             text-align: center;
             padding: 40px 30px;
-            background: linear-gradient(180deg, #0a1628 0%, var(--primary-mid) 50%, var(--primary) 100%);
+            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-mid) 100%);
             color: white;
         }
 
         .app-logo {
-            width: 120px;
-            height: 120px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            margin-bottom: 24px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.2);
+            width: 96px;
+            height: 96px;
+            margin-bottom: 28px;
         }
 
         .app-title {
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -1px;
+            width: 260px;
+            max-width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .app-title img {
+            width: 100%;
+            display: block;
         }
 
         .app-subtitle {
@@ -360,7 +372,7 @@
 
         .role-card.selected {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
         }
 
         .role-card .role-icon {
@@ -371,7 +383,7 @@
         .role-card .role-name {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .patente-section {
@@ -405,7 +417,7 @@
 
         .user-welcome h2 {
             font-size: 24px;
-            color: #1a1a2e;
+            color: var(--primary);
         }
 
         .user-welcome p {
@@ -414,7 +426,7 @@
         }
 
         .points-banner {
-            background: linear-gradient(135deg, #0f2a4a, var(--primary-mid));
+            background: linear-gradient(135deg, var(--primary), var(--primary-mid));
             border-radius: 20px;
             padding: 24px;
             color: white;
@@ -481,7 +493,7 @@
         .action-card .action-name {
             font-weight: 600;
             font-size: 13px;
-            color: #333;
+            color: var(--text);
         }
 
         .action-card .action-desc {
@@ -496,7 +508,7 @@
         .camera-area {
             width: 100%;
             height: 200px;
-            background: #1a1a2e;
+            background: var(--primary);
             border-radius: 16px;
             display: flex;
             flex-direction: column;
@@ -536,7 +548,7 @@
         .map-container .map-label {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -602,7 +614,7 @@
 
         .infraction-chip.selected {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             color: var(--primary);
             font-weight: 600;
         }
@@ -628,7 +640,7 @@
         }
 
         .trip-circle.idle {
-            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            background: linear-gradient(135deg, var(--cyan-tint), #B3E5F6);
             border: 4px solid var(--primary-light);
         }
 
@@ -651,7 +663,7 @@
         .trip-circle .trip-text {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text);
         }
 
         .trip-timer {
@@ -700,7 +712,7 @@
            ============================================ */
         .points-detail-card {
             text-align: center;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, var(--primary), var(--primary-mid));
             color: white;
             border-radius: 20px;
             padding: 30px;
@@ -735,7 +747,7 @@
         }
 
         .points-history-icon.reported {
-            background: #E3F2FD;
+            background: var(--cyan-tint);
         }
 
         .points-history-info {
@@ -745,7 +757,7 @@
         .points-history-info .title {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .points-history-info .date {
@@ -818,7 +830,7 @@
         .patente-display .patente {
             font-size: 28px;
             font-weight: 800;
-            color: #333;
+            color: var(--text);
             letter-spacing: 3px;
             margin-top: 4px;
         }
@@ -860,7 +872,7 @@
         .debt-info .debt-title {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .debt-info .debt-date {
@@ -915,7 +927,7 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1095,7 +1107,7 @@
         .push-notif-title {
             font-size: 14px;
             font-weight: 700;
-            color: #333;
+            color: var(--text);
             margin-top: 2px;
         }
 
@@ -1154,7 +1166,7 @@
         .infraction-photo {
             width: 100%;
             height: 140px;
-            background: #1a1a2e;
+            background: var(--primary);
             border-radius: 14px;
             margin-bottom: 16px;
             display: flex;
@@ -1206,7 +1218,7 @@
 
         .infraction-data-row .data-value {
             font-weight: 600;
-            color: #333;
+            color: var(--text);
         }
 
         /* Entidades involucradas (flujo visual) */
@@ -1240,7 +1252,7 @@
 
         .entity-badge .entity-name {
             font-size: 10px;
-            color: #333;
+            color: var(--text);
             font-weight: 600;
         }
 
@@ -1269,7 +1281,7 @@
 
         .payment-option.selected {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
         }
 
         .payment-option.recommended {
@@ -1316,7 +1328,7 @@
         .payment-option-header .option-title {
             font-weight: 700;
             font-size: 15px;
-            color: #333;
+            color: var(--text);
         }
 
         .payment-option .option-price {
@@ -1393,7 +1405,7 @@
             width: 44px;
             height: 44px;
             border-radius: 10px;
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1407,7 +1419,7 @@
         .insurance-info .ins-name {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .insurance-info .ins-policy {
@@ -1438,7 +1450,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1448,7 +1460,7 @@
         .chat-user-info .chat-user-name {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .chat-user-info .chat-spot-name {
@@ -1476,7 +1488,7 @@
 
         .chat-bubble.received {
             background: var(--light-gray);
-            color: #333;
+            color: var(--text);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
@@ -1566,7 +1578,7 @@
 
         .duration-chip.selected {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             color: var(--primary);
             font-weight: 600;
         }
@@ -1611,7 +1623,7 @@
 
         .payment-method-card.selected {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
         }
 
         .payment-method-icon {
@@ -1632,7 +1644,7 @@
         .payment-method-info .method-name {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .payment-method-info .method-desc {
@@ -1702,7 +1714,7 @@
 
         .overstay-detail-row .value {
             font-weight: 600;
-            color: #333;
+            color: var(--text);
         }
 
         .overstay-detail-row .value.danger {
@@ -1712,7 +1724,7 @@
         .overstay-photo-area {
             width: 100%;
             height: 140px;
-            background: #1a1a2e;
+            background: var(--primary);
             border-radius: 14px;
             display: flex;
             flex-direction: column;
@@ -1795,7 +1807,7 @@
             width: 38px;
             height: 38px;
             border-radius: 50%;
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1809,7 +1821,7 @@
         .reservation-user-info .res-name {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .reservation-user-info .res-patente {
@@ -1861,7 +1873,7 @@
         .reservation-times .time-value {
             font-size: 16px;
             font-weight: 700;
-            color: #333;
+            color: var(--text);
         }
 
         .no-reservations {
@@ -1906,8 +1918,8 @@
         }
 
         .parking-hub-card.search-card {
-            border-color: #BBDEFB;
-            background: linear-gradient(135deg, #E3F2FD, #fff);
+            border-color: #B3E5F6;
+            background: linear-gradient(135deg, var(--cyan-tint), #fff);
         }
 
         .parking-hub-card.offer-card {
@@ -1927,7 +1939,7 @@
         }
 
         .search-card .parking-hub-icon {
-            background: #BBDEFB;
+            background: #B3E5F6;
         }
 
         .offer-card .parking-hub-icon {
@@ -1936,7 +1948,7 @@
 
         .parking-hub-info h3 {
             font-size: 16px;
-            color: #333;
+            color: var(--text);
             margin-bottom: 4px;
         }
 
@@ -1953,7 +1965,7 @@
 
         .my-spots-section h3 {
             font-size: 15px;
-            color: #333;
+            color: var(--text);
             margin-bottom: 12px;
         }
 
@@ -1984,7 +1996,7 @@
         .my-spot-info .spot-addr {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .my-spot-info .spot-schedule {
@@ -2031,14 +2043,14 @@
 
         .parking-filter.active {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             color: var(--primary);
         }
 
         /* Lista de resultados de estacionamiento */
         .parking-results h3 {
             font-size: 14px;
-            color: #333;
+            color: var(--text);
             margin-bottom: 10px;
         }
 
@@ -2072,14 +2084,14 @@
         }
 
         .spot-type-badge.private { background: #E8F5E9; }
-        .spot-type-badge.metered { background: #E3F2FD; }
+        .spot-type-badge.metered { background: var(--cyan-tint); }
 
         .spot-details { flex: 1; }
 
         .spot-details .spot-name {
             font-weight: 600;
             font-size: 14px;
-            color: #333;
+            color: var(--text);
         }
 
         .spot-details .spot-address {
@@ -2124,7 +2136,7 @@
 
         .spot-detail-header h2 {
             font-size: 20px;
-            color: #333;
+            color: var(--text);
         }
 
         .spot-detail-header .detail-address {
@@ -2156,7 +2168,7 @@
         .spot-info-item .info-value {
             font-size: 16px;
             font-weight: 700;
-            color: #333;
+            color: var(--text);
         }
 
         .spot-owner-card {
@@ -2233,7 +2245,7 @@
             font-size: 48px;
             font-weight: 800;
             text-align: center;
-            color: #333;
+            color: var(--text);
             margin: 20px 0;
             font-variant-numeric: tabular-nums;
         }
@@ -2274,12 +2286,12 @@
 
         .parking-session-info .info-row .value {
             font-weight: 600;
-            color: #333;
+            color: var(--text);
         }
 
         /* Formulario ofrecer espacio */
         .price-suggestion {
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             border-radius: 10px;
             padding: 12px 14px;
             margin-top: 8px;
@@ -2310,7 +2322,7 @@
 
         .time-slot.selected {
             border-color: var(--primary);
-            background: #E3F2FD;
+            background: var(--cyan-tint);
             color: var(--primary);
             font-weight: 600;
         }
@@ -2327,6 +2339,31 @@
 </head>
 <body>
 
+<!-- Isotipo de marca (la "T" de calles). Se dibuja una vez y se reutiliza con <use href="#isotipo">.
+     Colores: --iso-borde (bordes de la calle) y --iso-carril (lineas punteadas). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="isotipo" viewBox="-4 -4 108 108">
+        <g style="fill: var(--iso-borde, #ffffff)">
+            <rect x="0" y="0" width="100" height="9"/>
+            <rect x="0" y="21" width="41" height="9"/>
+            <rect x="59" y="21" width="41" height="9"/>
+            <rect x="32" y="21" width="9" height="79"/>
+            <rect x="59" y="21" width="9" height="79"/>
+        </g>
+        <g style="fill: var(--iso-carril, #00AAE0)">
+            <rect x="2" y="12.5" width="10" height="5"/>
+            <rect x="17" y="12.5" width="10" height="5"/>
+            <rect x="73" y="12.5" width="10" height="5"/>
+            <rect x="88" y="12.5" width="10" height="5"/>
+            <rect x="47.5" y="8" width="5" height="10"/>
+            <rect x="47.5" y="26" width="5" height="10"/>
+            <rect x="47.5" y="44" width="5" height="10"/>
+            <rect x="47.5" y="62" width="5" height="10"/>
+            <rect x="47.5" y="80" width="5" height="10"/>
+        </g>
+    </symbol>
+</svg>
+
 <div class="phone-frame">
 
     <!-- =============================================
@@ -2335,8 +2372,8 @@
          ============================================= -->
     <div id="welcome" class="screen active">
         <div class="content">
-            <div class="app-logo">🚦</div>
-            <div class="app-title">Transitar</div>
+            <svg class="app-logo" aria-hidden="true"><use href="#isotipo"/></svg>
+            <h1 class="app-title"><img src="./img/logo-blanco.png" alt="Transitar - Movilidad que nos conecta"></h1>
             <div class="app-subtitle">Seguridad vial colaborativa<br>para las ciudades argentinas</div>
             <div class="welcome-buttons">
                 <button class="btn" onclick="showScreen('login')">Iniciar Sesion</button>
@@ -2439,8 +2476,8 @@
         </div>
         <div class="content">
             <div style="text-align:center; margin-bottom:30px; margin-top:20px;">
-                <div style="font-size:50px;">🚦</div>
-                <h2 style="color:#333; margin-top:12px;">Bienvenido de vuelta</h2>
+                <svg aria-hidden="true" style="width:64px; height:64px; --iso-borde: var(--primary);"><use href="#isotipo"/></svg>
+                <h2 style="color:var(--text); margin-top:12px;">Bienvenido de vuelta</h2>
             </div>
             <div class="input-group">
                 <label>Email</label>
@@ -2465,7 +2502,7 @@
          ============================================= -->
     <div id="home" class="screen">
         <div class="header">
-            <h1>🚦 Transitar</h1>
+            <h1><img src="./img/logo-blanco.png" alt="Transitar" style="height:34px; display:block;"></h1>
         </div>
         <div class="content">
             <div class="user-welcome">
@@ -2499,7 +2536,7 @@
             </div>
 
             <!-- Boton grande de Estacionamiento (disponible para todos) -->
-            <div class="action-card" id="parking-action" onclick="showScreen('parking-hub')" style="text-align:center; margin-bottom:12px; border: 2px solid #BBDEFB; background: linear-gradient(135deg, #E3F2FD, #fff);">
+            <div class="action-card" id="parking-action" onclick="showScreen('parking-hub')" style="text-align:center; margin-bottom:12px; border: 2px solid #B3E5F6; background: linear-gradient(135deg, var(--cyan-tint), #fff);">
                 <div class="action-icon">🅿️</div>
                 <div class="action-name">Estacionamiento</div>
                 <div class="action-desc">Busca donde estacionar o publica tu cochera</div>
@@ -2569,7 +2606,7 @@
                 </div>
             </div>
 
-            <p style="font-size:14px; font-weight:600; color:#333; margin-bottom:10px;">Tipo de infraccion:</p>
+            <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px;">Tipo de infraccion:</p>
             <div class="infraction-types">
                 <div class="infraction-chip" onclick="toggleChip(this)">Estacionamiento prohibido</div>
                 <div class="infraction-chip" onclick="toggleChip(this)">Doble fila</div>
@@ -2667,7 +2704,7 @@
                 </div>
             </div>
 
-            <h3 style="margin: 24px 0 12px; font-size: 16px; color: #333;">Historial</h3>
+            <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--text);">Historial</h3>
 
             <div class="points-history-item">
                 <div class="points-history-icon earned">🚗</div>
@@ -2720,7 +2757,7 @@
                 <div class="status">✓ Validada por RNPA</div>
             </div>
 
-            <h3 style="font-size:15px; color:#333; margin-bottom:12px;">Infracciones pendientes</h3>
+            <h3 style="font-size:15px; color:var(--text); margin-bottom:12px;">Infracciones pendientes</h3>
 
             <div class="debt-item">
                 <div class="debt-icon">🚦</div>
@@ -2742,7 +2779,7 @@
                 </div>
             </div>
 
-            <div style="text-align:center; margin-top:20px; padding:16px; background:#f5f5f5; border-radius:12px;">
+            <div style="text-align:center; margin-top:20px; padding:16px; background:var(--light-gray); border-radius:12px;">
                 <p style="font-size:13px; color:var(--gray);">
                     💡 Las deudas se sincronizan con el sistema de infracciones de tu municipio.
                 </p>
@@ -2804,7 +2841,7 @@
         </div>
         <div class="content">
             <div style="text-align:center; margin-bottom:24px; margin-top:10px;">
-                <div style="width:80px;height:80px;border-radius:50%;background:#E3F2FD;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;">👤</div>
+                <div style="width:80px;height:80px;border-radius:50%;background:var(--cyan-tint);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;">👤</div>
                 <h3 id="profile-name">Usuario</h3>
                 <p style="color:var(--gray); font-size:14px;" id="profile-role">Conductor</p>
             </div>
@@ -2855,7 +2892,7 @@
             <!-- Flujo visual: quien notifico a quien -->
             <div class="entity-flow">
                 <div class="entity-badge">
-                    <div class="entity-icon" style="background:#E3F2FD;">📸</div>
+                    <div class="entity-icon" style="background:var(--cyan-tint);">📸</div>
                     <div class="entity-name">Denunciante</div>
                 </div>
                 <div class="entity-arrow">→</div>
@@ -2923,7 +2960,7 @@
             </div>
 
             <!-- Opciones de pago -->
-            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:12px;">Elegi como pagar:</p>
+            <p style="font-size:15px; font-weight:700; color:var(--text); margin-bottom:12px;">Elegi como pagar:</p>
 
             <div class="payment-options">
                 <!-- Opcion 1: Pagar ahora con descuento -->
@@ -3010,7 +3047,7 @@
             </div>
 
             <!-- Info sobre estacionamiento medido -->
-            <div style="margin-top:24px; padding:16px; background:#E3F2FD; border-radius:12px;">
+            <div style="margin-top:24px; padding:16px; background:var(--cyan-tint); border-radius:12px;">
                 <p style="font-size:13px; color:var(--primary); line-height:1.5;">
                     <strong>💡 Estacionamiento medido</strong><br>
                     Tambien podes buscar y pagar estacionamiento medido municipal directamente desde la app, sin necesidad de parquimetro.
@@ -3119,7 +3156,7 @@
                 </select>
             </div>
 
-            <p style="font-size:14px; font-weight:600; color:#333; margin-bottom:8px;">Dias disponibles:</p>
+            <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:8px;">Dias disponibles:</p>
             <div class="time-slots" id="offer-days">
                 <div class="time-slot" onclick="toggleChip(this)">Lun</div>
                 <div class="time-slot" onclick="toggleChip(this)">Mar</div>
@@ -3301,7 +3338,7 @@
 
             <div class="chat-messages" id="chat-messages">
                 <!-- Mensaje automatico del sistema -->
-                <div style="text-align:center; font-size:12px; color:var(--gray); padding:10px; background:#f5f5f5; border-radius:10px;">
+                <div style="text-align:center; font-size:12px; color:var(--gray); padding:10px; background:var(--light-gray); border-radius:10px;">
                     🔒 Este chat es exclusivo para coordinar el uso del espacio de estacionamiento.
                 </div>
 
@@ -3341,7 +3378,7 @@
             </div>
 
             <!-- Seleccion de horario -->
-            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:10px;">Selecciona el horario:</p>
+            <p style="font-size:15px; font-weight:700; color:var(--text); margin-bottom:10px;">Selecciona el horario:</p>
 
             <div class="time-selector-grid">
                 <div class="input-group">
@@ -3370,7 +3407,7 @@
             </div>
 
             <!-- Metodo de pago -->
-            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:10px;">Metodo de pago:</p>
+            <p style="font-size:15px; font-weight:700; color:var(--text); margin-bottom:10px;">Metodo de pago:</p>
 
             <div class="payment-method-card selected" onclick="selectPayMethod(this, 'wallet')">
                 <div class="payment-method-icon">💰</div>
@@ -3434,7 +3471,7 @@
             </div>
 
             <!-- Reservas -->
-            <h3 style="font-size:15px; color:#333; margin-bottom:12px;">Reservas</h3>
+            <h3 style="font-size:15px; color:var(--text); margin-bottom:12px;">Reservas</h3>
 
             <div id="myspot-reservations">
                 <!-- Se llena dinamicamente -->
@@ -3484,7 +3521,7 @@
             </div>
 
             <!-- Foto del vehiculo todavia en el espacio -->
-            <p style="font-size:14px; font-weight:600; color:#333; margin-bottom:8px;">
+            <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:8px;">
                 Foto del vehiculo en tu espacio:
             </p>
             <div class="overstay-photo-area" id="overstay-photo" onclick="takeOverstayPhoto()">
@@ -3501,7 +3538,7 @@
                 🚨 Reportar Estadia Excedida
             </button>
 
-            <div style="margin-top:12px; padding:12px; background:#E3F2FD; border-radius:10px;">
+            <div style="margin-top:12px; padding:12px; background:var(--cyan-tint); border-radius:10px;">
                 <p style="font-size:12px; color:var(--primary); line-height:1.4;">
                     <strong>💡 ¿Que pasa despues?</strong><br>
                     Se notificara al conductor y se le cobrara un recargo por el tiempo excedido.
@@ -4066,7 +4103,7 @@
         // Limpiar mensajes anteriores y poner los iniciales
         const messages = document.getElementById('chat-messages');
         messages.innerHTML = `
-            <div style="text-align:center; font-size:12px; color:var(--gray); padding:10px; background:#f5f5f5; border-radius:10px;">
+            <div style="text-align:center; font-size:12px; color:var(--gray); padding:10px; background:var(--light-gray); border-radius:10px;">
                 🔒 Este chat es exclusivo para coordinar el uso del espacio de estacionamiento.
             </div>
             <div class="chat-bubble received">
@@ -4531,7 +4568,7 @@
             // divIcon permite usar HTML/CSS como icono del marcador
             const icon = L.divIcon({
                 html: `<div style="
-                    background: ${spot.type === 'private' ? '#4CAF50' : '#1565C0'};
+                    background: ${spot.type === 'private' ? '#4CAF50' : '#162257'};
                     color: white;
                     width: 32px;
                     height: 32px;
