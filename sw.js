@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transitar-v2';
+const CACHE_NAME = 'transitar-v3';
 const ASSETS = [
   './',
   './index.html',

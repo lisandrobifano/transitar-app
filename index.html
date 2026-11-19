@@ -2335,6 +2335,304 @@
             background-position: right 16px center;
             padding-right: 40px;
         }
+
+        /* ============================================
+           TSCORE COMUNITARIO (reseñas viales)
+           Reemplaza el modelo de denuncia + multa.
+           ============================================ */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 4px 0 10px;
+        }
+
+        /* Selector de tipo de reseña (3 pestañas) */
+        .review-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--light-gray);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .review-tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 4px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+        }
+        .review-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        /* Input de patente estilo chapa argentina */
+        .patente-input {
+            width: 100%;
+            padding: 14px;
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-align: center;
+            text-transform: uppercase;
+            color: var(--primary);
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        /* Lista de categorias con puntos */
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+        }
+        .category-item.selected {
+            border-color: var(--primary);
+            background: var(--cyan-tint);
+        }
+        .category-item .cat-name {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .category-item .cat-pts {
+            font-size: 14px;
+            font-weight: 800;
+        }
+        .cat-pts.neg { color: var(--danger); }
+        .cat-pts.pos { color: var(--accent-dark); }
+
+        .sev-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        .sev-badge.grave { background: #FFEBEE; color: #C62828; }
+        .sev-badge.media { background: #FFF3E0; color: #E65100; }
+        .sev-badge.leve  { background: #E8F5E9; color: #2E7D32; }
+        .sev-badge.info  { background: var(--cyan-tint); color: var(--primary); }
+
+        /* Tarjeta "peso de voz" */
+        .voice-weight {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 14px;
+            background: var(--cyan-tint);
+            border: 1px solid #B3E5F6;
+            margin-bottom: 16px;
+        }
+        .voice-weight .vw-mult {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            min-width: 54px;
+            text-align: center;
+        }
+        .voice-weight .vw-text {
+            font-size: 12px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .anon-note {
+            font-size: 12px;
+            color: var(--gray);
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* Mensajes de estado de la reseña */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .status-pill.pending { background: #FFF8E1; color: #B26A00; border: 1px solid #FFE082; }
+        .status-pill.ok      { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+        .status-pill.bad     { background: #FFEBEE; color: #C62828; border: 1px solid #FFCDD2; }
+
+        /* Niveles de TScore */
+        .level-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.35);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .level-progress {
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            margin-top: 14px;
+            overflow: hidden;
+        }
+        .level-progress-fill {
+            height: 100%;
+            background: var(--cyan);
+            border-radius: 4px;
+            transition: width 0.6s;
+        }
+        .level-next {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 6px;
+        }
+
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .level-card {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            border-top: 3px solid var(--brand-gray);
+        }
+        .level-card.current {
+            background: var(--cyan-tint);
+            border-top-color: var(--cyan);
+        }
+        .level-card .lv-name { font-size: 11px; font-weight: 700; color: var(--primary); }
+        .level-card .lv-range { font-size: 10px; color: var(--gray); margin-top: 2px; }
+        .level-card .lv-mult { font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 6px; }
+
+        /* Tablas de puntos (desplegables) */
+        .pts-table {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .pts-table summary {
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            background: #fafafa;
+        }
+        .pts-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 12px;
+        }
+        .pts-row .pr-name { flex: 1; color: var(--text); }
+        .pts-row .pr-pts { font-weight: 800; min-width: 44px; text-align: right; }
+
+        /* Ranking mensual */
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .ranking-item .rk-pos {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--primary);
+        }
+        .ranking-item.me {
+            background: var(--cyan-tint);
+            border-radius: 10px;
+            padding: 10px 8px;
+        }
+        .ranking-item .rk-name { flex: 1; font-weight: 600; color: var(--text); }
+        .ranking-item .rk-score { font-weight: 800; color: var(--primary); }
+
+        /* Reseñas recibidas (Mi reputacion) */
+        .review-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            cursor: pointer;
+        }
+        .review-item .rv-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .review-item .rv-icon.neg { background: #FFEBEE; }
+        .review-item .rv-icon.pos { background: #E8F5E9; }
+        .review-item .rv-icon.pend { background: #FFF8E1; }
+        .review-item .rv-info { flex: 1; }
+        .review-item .rv-title { font-size: 14px; font-weight: 600; color: var(--text); }
+        .review-item .rv-meta { font-size: 11px; color: var(--gray); margin-top: 2px; }
+        .review-item .rv-pts { font-weight: 800; font-size: 15px; }
+
+        .review-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+            border-radius: 20px;
+            padding: 22px;
+            color: white;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .review-banner .rb-icon { font-size: 44px; margin-bottom: 6px; }
+        .review-banner h2 { font-size: 19px; margin-bottom: 4px; }
+        .review-banner .rb-sub { font-size: 12px; opacity: 0.85; }
+        .review-banner .rb-impact { font-size: 36px; font-weight: 800; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -2511,10 +2809,10 @@
             </div>
 
             <!-- Banner de puntos (solo conductores) -->
-            <div class="points-banner" id="points-banner">
-                <div class="points-label">Tus puntos</div>
+            <div class="points-banner" id="points-banner" onclick="showScreen('points')" style="cursor:pointer;">
+                <div class="points-label">Tu TScore</div>
                 <div class="points-value" id="home-points">350</div>
-                <div class="points-sublabel">Segui conduciendo sin el celular para sumar mas</div>
+                <div class="points-sublabel" id="home-level">Nivel 2 · Activo — peso de voz 0.7×</div>
             </div>
 
             <div class="quick-actions">
@@ -2523,15 +2821,20 @@
                     <div class="action-name">Iniciar Viaje</div>
                     <div class="action-desc">Modo conduccion segura</div>
                 </div>
+                <div class="action-card" onclick="showScreen('report')">
+                    <div class="action-icon">📝</div>
+                    <div class="action-name">Calificar Patente</div>
+                    <div class="action-desc">Reseña vial comunitaria</div>
+                </div>
                 <div class="action-card" onclick="showScreen('points')">
                     <div class="action-icon">⭐</div>
-                    <div class="action-name">Mis Puntos</div>
-                    <div class="action-desc">Historial y beneficios</div>
+                    <div class="action-name">Mi TScore</div>
+                    <div class="action-desc">Nivel, ranking y canje</div>
                 </div>
                 <div class="action-card" id="debts-action" onclick="showScreen('debts')">
-                    <div class="action-icon">📋</div>
-                    <div class="action-name">Mis Deudas</div>
-                    <div class="action-desc">Infracciones pendientes</div>
+                    <div class="action-icon">🪪</div>
+                    <div class="action-name">Mi Reputación</div>
+                    <div class="action-desc">Reseñas sobre tu patente</div>
                 </div>
             </div>
 
@@ -2564,7 +2867,7 @@
             </button>
             <button class="nav-item" onclick="showScreen('points')">
                 <span class="nav-icon">⭐</span>
-                Puntos
+                TScore
             </button>
             <button class="nav-item" onclick="showScreen('profile')">
                 <span class="nav-icon">👤</span>
@@ -2574,18 +2877,34 @@
     </div>
 
     <!-- =============================================
-         PANTALLA: DENUNCIAR INFRACCION
-         Foto + ubicacion + tipo + municipio
+         PANTALLA: RESEÑA VIAL (TScore comunitario)
+         Reemplaza la denuncia formal + multa.
+         Patente + categoria + foto/ubicacion opcionales.
+         No hay juez ni multa: es reputacion vial.
          ============================================= -->
     <div id="report" class="screen">
         <div class="header">
             <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
-            <h1>Denunciar Infraccion</h1>
+            <h1>Calificar Patente</h1>
         </div>
         <div class="content">
-            <div class="camera-area" id="camera-area" onclick="takePhoto()">
-                <div class="cam-icon">📷</div>
-                <span id="camera-text">Toca para sacar foto</span>
+            <div class="review-tabs">
+                <button class="review-tab active" data-mode="neg" onclick="setReviewMode('neg')">👎 Mal manejo</button>
+                <button class="review-tab" data-mode="pos" onclick="setReviewMode('pos')">👍 Buen manejo</button>
+                <button class="review-tab" data-mode="urb" onclick="setReviewMode('urb')">🚧 Problema urbano</button>
+            </div>
+
+            <div id="review-patente-block">
+                <p class="section-title">Patente del vehículo</p>
+                <input type="text" class="patente-input" id="review-patente" placeholder="AB 123 CD" maxlength="9">
+            </div>
+
+            <p class="section-title" id="review-cat-title">¿Qué comportamiento viste?</p>
+            <div class="category-list" id="review-categories"></div>
+
+            <div class="camera-area" id="camera-area" onclick="takePhoto()" style="height:120px;">
+                <div class="cam-icon" style="font-size:36px;">📷</div>
+                <span id="camera-text">Agregar foto (opcional)</span>
             </div>
 
             <!-- ============================================
@@ -2595,7 +2914,7 @@
                  un marcador en la ubicacion de la infraccion.
                  ============================================ -->
             <div class="map-container">
-                <div class="map-label">📍 Ubicacion de la infraccion</div>
+                <div class="map-label">📍 ¿Dónde fue? (opcional)</div>
                 <div id="report-map"></div>
                 <div class="map-status waiting" id="map-status">
                     <span>⏳</span>
@@ -2606,39 +2925,27 @@
                 </div>
             </div>
 
-            <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px;">Tipo de infraccion:</p>
-            <div class="infraction-types">
-                <div class="infraction-chip" onclick="toggleChip(this)">Estacionamiento prohibido</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Doble fila</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Semaforo en rojo</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Exceso de velocidad</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Uso de celular</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Sin cinturon</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Senda peatonal</div>
-                <div class="infraction-chip" onclick="toggleChip(this)">Otra</div>
-            </div>
-
-            <div class="input-group municipio-selector">
-                <label>Municipio destino de la denuncia</label>
-                <select>
-                    <option value="">Selecciona el municipio</option>
-                    <option>Municipalidad de Buenos Aires</option>
-                    <option>Municipalidad de Cordoba</option>
-                    <option>Municipalidad de Rosario</option>
-                    <option>Municipalidad de Mendoza</option>
-                    <option>Municipalidad de La Plata</option>
-                    <option>Otro municipio...</option>
-                </select>
-            </div>
-
             <div class="input-group">
-                <label>Descripcion adicional (opcional)</label>
-                <input type="text" placeholder="Ej: Auto negro en esquina de Av. Corrientes y Callao">
+                <label>Comentario (opcional)</label>
+                <input type="text" id="review-comment" placeholder="Ej: Bloqueaba la rampa de la esquina">
             </div>
 
-            <button class="btn btn-danger" onclick="submitReport()" style="margin-top:8px;">
-                🚨 Enviar Denuncia
+            <!-- Peso de voz: cuanto impacta la reseña segun el TScore de quien califica -->
+            <div class="voice-weight">
+                <div class="vw-mult" id="vw-mult">0.7×</div>
+                <div class="vw-text" id="vw-text">
+                    <strong>Tu peso de voz: Nivel 2 · Activo.</strong><br>
+                    Tu reseña tiene impacto parcial inmediato y se completa si otro usuario la confirma.
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="submitReport()" style="margin-top:4px;">
+                Enviar reseña
             </button>
+            <p class="anon-note">
+                🔒 Tu identidad nunca se comparte con el conductor calificado.<br>
+                No es una multa: es reputación vial. Las reseñas falsas restan −30 pts a quien las envía.
+            </p>
         </div>
     </div>
 
@@ -2685,14 +2992,51 @@
     <div id="points" class="screen">
         <div class="header">
             <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
-            <h1>Mis Puntos</h1>
+            <h1>Mi TScore</h1>
         </div>
         <div class="content">
             <div class="points-detail-card">
-                <div class="points-label">Puntos acumulados</div>
+                <div class="points-label">TScore</div>
                 <div class="points-detail-value" id="points-total">350</div>
-                <div class="points-sublabel">Nivel: Conductor Responsable 🏅</div>
+                <div class="level-badge" id="points-level">Nivel 2 · Activo</div>
+                <div class="level-progress"><div class="level-progress-fill" id="level-progress-fill" style="width:38%"></div></div>
+                <div class="level-next" id="level-next">Te faltan 250 pts para Nivel 3 · Referente</div>
             </div>
+
+            <!-- Peso de voz por nivel -->
+            <p class="section-title">Tu peso de voz</p>
+            <div class="levels-grid">
+                <div class="level-card" id="lv-card-1">
+                    <div class="lv-name">Nivel 1 · Nuevo</div>
+                    <div class="lv-range">0 – 199</div>
+                    <div class="lv-mult">0.3×</div>
+                </div>
+                <div class="level-card" id="lv-card-2">
+                    <div class="lv-name">Nivel 2 · Activo</div>
+                    <div class="lv-range">200 – 599</div>
+                    <div class="lv-mult">0.7×</div>
+                </div>
+                <div class="level-card" id="lv-card-3">
+                    <div class="lv-name">Nivel 3 · Referente</div>
+                    <div class="lv-range">600+</div>
+                    <div class="lv-mult">1.0×</div>
+                </div>
+            </div>
+
+            <!-- Como se suman y restan puntos -->
+            <details class="pts-table">
+                <summary>✅ Cómo sumar puntos</summary>
+                <div id="pts-table-pos"></div>
+            </details>
+            <details class="pts-table">
+                <summary>⚠️ Qué resta puntos</summary>
+                <div id="pts-table-neg"></div>
+            </details>
+
+            <!-- Ranking mensual -->
+            <p class="section-title" style="margin-top:20px;">🏆 Ranking del mes · Tres de Febrero</p>
+            <div id="ranking-list"></div>
+            <p style="font-size:11px; color:var(--gray); margin:8px 0 4px;">El top 10 del mes gana puntos extra canjeables.</p>
 
             <!-- Banner YPF - Proximamente -->
             <div class="ypf-banner">
@@ -2706,6 +3050,7 @@
 
             <h3 style="margin: 24px 0 12px; font-size: 16px; color: var(--text);">Historial</h3>
 
+            <div id="points-history-dynamic"></div>
             <div class="points-history-item">
                 <div class="points-history-icon earned">🚗</div>
                 <div class="points-history-info">
@@ -2715,12 +3060,20 @@
                 <div class="points-history-amount">+10</div>
             </div>
             <div class="points-history-item">
-                <div class="points-history-icon reported">📸</div>
+                <div class="points-history-icon reported">📝</div>
                 <div class="points-history-info">
-                    <div class="title">Denuncia verificada</div>
+                    <div class="title">Reseña confirmada por la comunidad</div>
                     <div class="date">Ayer, 09:15</div>
                 </div>
-                <div class="points-history-amount">+5</div>
+                <div class="points-history-amount">+10</div>
+            </div>
+            <div class="points-history-item">
+                <div class="points-history-icon earned">🗓️</div>
+                <div class="points-history-info">
+                    <div class="title">Semana sin infracciones ni reseñas negativas</div>
+                    <div class="date">Lunes, 00:00</div>
+                </div>
+                <div class="points-history-amount">+20</div>
             </div>
             <div class="points-history-item">
                 <div class="points-history-icon earned">🚗</div>
@@ -2748,7 +3101,7 @@
     <div id="debts" class="screen">
         <div class="header">
             <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
-            <h1>Mis Deudas</h1>
+            <h1>Mi Reputación</h1>
         </div>
         <div class="content">
             <div class="patente-display">
@@ -2757,31 +3110,13 @@
                 <div class="status">✓ Validada por RNPA</div>
             </div>
 
-            <h3 style="font-size:15px; color:var(--text); margin-bottom:12px;">Infracciones pendientes</h3>
+            <h3 style="font-size:15px; color:var(--text); margin-bottom:12px;">Reseñas sobre tu patente</h3>
+            <div id="received-reviews"></div>
 
-            <div class="debt-item">
-                <div class="debt-icon">🚦</div>
-                <div class="debt-info">
-                    <div class="debt-title">Semaforo en rojo</div>
-                    <div class="debt-date">15/02/2026 - Av. Corrientes 1200</div>
-                    <div class="debt-amount">$45.000</div>
-                    <button class="debt-pay-btn" onclick="payDebt(this)">Pagar</button>
-                </div>
-            </div>
-
-            <div class="debt-item">
-                <div class="debt-icon">🅿️</div>
-                <div class="debt-info">
-                    <div class="debt-title">Estacionamiento prohibido</div>
-                    <div class="debt-date">03/01/2026 - Calle Florida 500</div>
-                    <div class="debt-amount">$28.000</div>
-                    <button class="debt-pay-btn" onclick="payDebt(this)">Pagar</button>
-                </div>
-            </div>
-
-            <div style="text-align:center; margin-top:20px; padding:16px; background:var(--light-gray); border-radius:12px;">
-                <p style="font-size:13px; color:var(--gray);">
-                    💡 Las deudas se sincronizan con el sistema de infracciones de tu municipio.
+            <div style="margin-top:20px; padding:16px; background:var(--cyan-tint); border-radius:12px;">
+                <p style="font-size:12px; color:var(--primary); line-height:1.5;">
+                    💡 <strong>No hay multas.</strong> Las reseñas validadas por el bot y la comunidad suman o restan puntos a tu TScore.
+                    Un TScore alto te da más beneficios de canje y mejor posición en el ranking.
                 </p>
             </div>
         </div>
@@ -2860,8 +3195,12 @@
                 <p style="font-weight:700; font-size:24px;">23</p>
             </div>
             <div class="card">
-                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">Denuncias realizadas</p>
-                <p style="font-weight:700; font-size:24px;">7</p>
+                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">Reseñas aportadas</p>
+                <p style="font-weight:700; font-size:24px;"><span id="profile-reviews">7</span> <span style="font-size:13px; color:var(--accent-dark); font-weight:600;">· 6 confirmadas</span></p>
+            </div>
+            <div class="card">
+                <p style="font-size:14px; color:var(--gray); margin-bottom:4px;">TScore</p>
+                <p style="font-weight:700; font-size:24px;"><span id="profile-tscore">350</span> <span style="font-size:13px; color:var(--primary); font-weight:600;" id="profile-level">· Nivel 2 · Activo</span></p>
             </div>
 
             <button class="btn btn-outline" onclick="showScreen('welcome')" style="margin-top:12px;">
@@ -2871,135 +3210,82 @@
     </div>
 
     <!-- =============================================
-         PANTALLA: INFRACCION DETECTADA (vista del conductor)
-         Esta pantalla aparece cuando al conductor le
-         notifican que alguien le saco foto cometiendo
-         una infraccion. Muestra los datos y opciones de pago.
+         PANTALLA: RESEÑA RECIBIDA (vista del conductor calificado)
+         Aparece cuando la comunidad califico tu patente.
+         No hay multa ni pago: impacta en tu TScore.
          ============================================= -->
     <div id="infraction-alert" class="screen">
-        <div class="header" style="background: linear-gradient(135deg, #E53935, #C62828);">
-            <button class="back-btn" onclick="showScreen('home')">&#8592;</button>
-            <h1>Infraccion Detectada</h1>
+        <div class="header">
+            <button class="back-btn" onclick="showScreen('debts')">&#8592;</button>
+            <h1>Reseña Recibida</h1>
         </div>
         <div class="content">
-            <!-- Banner de alerta -->
-            <div class="infraction-alert-banner">
-                <div class="alert-icon">🚨</div>
-                <h2>Infraccion en curso</h2>
-                <div class="alert-subtitle">Tu aseguradora fue notificada por el municipio</div>
+            <div class="review-banner">
+                <div class="rb-icon" id="rr-icon">📝</div>
+                <h2 id="rr-title">Calificaron tu patente</h2>
+                <div class="rb-sub" id="rr-sub">Validada por el bot y confirmada por la comunidad</div>
+                <div class="rb-impact" id="rr-impact">−15 pts</div>
             </div>
 
-            <!-- Flujo visual: quien notifico a quien -->
-            <div class="entity-flow">
+            <!-- Flujo: quien interviene en una reseña -->
+            <div class="entity-flow" style="background:var(--cyan-tint); border-color:#B3E5F6;">
                 <div class="entity-badge">
-                    <div class="entity-icon" style="background:var(--cyan-tint);">📸</div>
-                    <div class="entity-name">Denunciante</div>
+                    <div class="entity-icon" style="background:white;">👥</div>
+                    <div class="entity-name">Comunidad</div>
                 </div>
-                <div class="entity-arrow">→</div>
+                <div class="entity-arrow" style="color:var(--cyan);">→</div>
                 <div class="entity-badge">
-                    <div class="entity-icon" style="background:#FFF3E0;">🏛️</div>
-                    <div class="entity-name">Municipio</div>
+                    <div class="entity-icon" style="background:white;">🤖</div>
+                    <div class="entity-name">Bot valida</div>
                 </div>
-                <div class="entity-arrow">→</div>
+                <div class="entity-arrow" style="color:var(--cyan);">→</div>
                 <div class="entity-badge">
-                    <div class="entity-icon" style="background:#E8F5E9;">🛡️</div>
-                    <div class="entity-name">Aseguradora</div>
+                    <div class="entity-icon" style="background:white;">⭐</div>
+                    <div class="entity-name">TScore</div>
                 </div>
-                <div class="entity-arrow">→</div>
+                <div class="entity-arrow" style="color:var(--cyan);">→</div>
                 <div class="entity-badge">
-                    <div class="entity-icon" style="background:#FFEBEE;">🚗</div>
+                    <div class="entity-icon" style="background:white;">🚗</div>
                     <div class="entity-name">Vos</div>
                 </div>
             </div>
 
-            <!-- Foto simulada de la infraccion -->
-            <div class="infraction-photo">
-                <div style="font-size:60px; opacity:0.3;">📷</div>
-                <div class="photo-overlay">
-                    <span>📸 Foto capturada por otro usuario - <span id="alert-time">14:32</span></span>
-                </div>
-            </div>
-
-            <!-- Datos de la infraccion -->
             <div class="infraction-data">
                 <div class="infraction-data-row">
-                    <span class="data-label">Tipo</span>
-                    <span class="data-value" id="alert-infraction-type">Doble fila</span>
+                    <span class="data-label">Comportamiento</span>
+                    <span class="data-value" id="alert-infraction-type">Mal estacionamiento</span>
                 </div>
                 <div class="infraction-data-row">
-                    <span class="data-label">Ubicacion</span>
+                    <span class="data-label">Gravedad</span>
+                    <span class="data-value" id="alert-severity">MEDIA</span>
+                </div>
+                <div class="infraction-data-row">
+                    <span class="data-label">Ubicación</span>
                     <span class="data-value" id="alert-location">Av. Corrientes 1200</span>
                 </div>
                 <div class="infraction-data-row">
-                    <span class="data-label">Patente detectada</span>
-                    <span class="data-value" id="alert-patente">AB 123 CD</span>
+                    <span class="data-label">Fecha</span>
+                    <span class="data-value" id="alert-date">Hoy</span>
                 </div>
                 <div class="infraction-data-row">
-                    <span class="data-label">Municipio</span>
-                    <span class="data-value" id="alert-municipio">CABA</span>
+                    <span class="data-label">Patente</span>
+                    <span class="data-value">AB 123 CD</span>
                 </div>
                 <div class="infraction-data-row">
-                    <span class="data-label">Monto de la multa</span>
-                    <span class="data-value" style="color:var(--danger);" id="alert-fine-amount">$45.000</span>
+                    <span class="data-label">Estado</span>
+                    <span class="data-value" id="alert-status">✓ Validada</span>
                 </div>
             </div>
 
-            <!-- Tu aseguradora -->
-            <div class="insurance-card">
-                <div class="insurance-logo">🛡️</div>
-                <div class="insurance-info">
-                    <div class="ins-name" id="alert-insurance-name">La Segunda Seguros</div>
-                    <div class="ins-policy">Poliza #TRA-2026-48291</div>
-                </div>
-            </div>
+            <div class="status-pill ok" id="alert-pill">✓ Validada por el bot · 2 confirmaciones de la comunidad</div>
 
-            <!-- Temporizador de la oferta -->
-            <div class="offer-timer">
-                <div>La oferta de pago con descuento vence en:</div>
-                <div class="timer-value" id="insurance-offer-timer">29:59</div>
-            </div>
-
-            <!-- Opciones de pago -->
-            <p style="font-size:15px; font-weight:700; color:var(--text); margin-bottom:12px;">Elegi como pagar:</p>
-
-            <div class="payment-options">
-                <!-- Opcion 1: Pagar ahora con descuento -->
-                <div class="payment-option recommended selected" onclick="selectPaymentOption('instant')" id="pay-option-instant">
-                    <div class="recommend-tag">RECOMENDADO</div>
-                    <div class="payment-option-header">
-                        <div class="option-icon instant">⚡</div>
-                        <div class="option-title">Pagar ahora</div>
-                    </div>
-                    <div class="option-price discounted">
-                        $22.500
-                        <span class="option-original" id="alert-original-price">$45.000</span>
-                        <span class="discount-badge" id="alert-discount-badge">-50%</span>
-                    </div>
-                    <div class="option-desc">
-                        Paga el 50% de la multa ahora mismo y queda saldada. Se procesa al instante a traves de tu aseguradora. Sin antecedentes adicionales.
-                    </div>
-                </div>
-
-                <!-- Opcion 2: Diferir a la factura del seguro -->
-                <div class="payment-option" onclick="selectPaymentOption('deferred')" id="pay-option-deferred">
-                    <div class="payment-option-header">
-                        <div class="option-icon deferred">📄</div>
-                        <div class="option-title">Pagar en la proxima factura</div>
-                    </div>
-                    <div class="option-price full">$45.000</div>
-                    <div class="option-desc">
-                        El monto total se sumara a tu proxima factura del seguro. La multa queda registrada como infraccion en tu historial.
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" onclick="processInfractionPayment()" id="infraction-pay-btn">
-                ⚡ Pagar $22.500 ahora
-            </button>
-
-            <p style="text-align:center; font-size:11px; color:var(--gray); margin-top:10px; line-height:1.4;">
-                Al pagar, aceptas que la infraccion fue cometida. El pago se procesa a traves de tu aseguradora de forma segura.
+            <p style="font-size:12px; color:var(--gray); line-height:1.5; margin:12px 0 16px;">
+                Esto no es una multa. Las reseñas validadas impactan en tu TScore, tu nivel y tu acceso a beneficios.
+                La identidad de quien calificó es anónima.
             </p>
+
+            <button class="btn btn-primary" onclick="showScreen('points')">Ver mi TScore</button>
+            <button class="btn btn-outline" onclick="requestReviewCheck()" style="margin-top:10px;">No estoy de acuerdo · Pedir revisión</button>
         </div>
     </div>
 
@@ -3562,14 +3848,14 @@
     <!-- =============================================
          NOTIFICACION PUSH (simula la notificacion del celular)
          Aparece deslizandose desde arriba cuando al conductor
-         le llega una alerta de infraccion via su aseguradora
+         le llega un aviso de la comunidad (ej: reseña confirmada)
          ============================================= -->
-    <div class="push-notification" id="push-notification" onclick="openInfractionAlert()">
-        <div class="push-notif-icon">🚨</div>
+    <div class="push-notification" id="push-notification" onclick="onPushClick()">
+        <div class="push-notif-icon" id="push-icon">✅</div>
         <div class="push-notif-content">
-            <div class="push-notif-app">Transitar via La Segunda</div>
-            <div class="push-notif-title">Infraccion detectada en tu vehiculo</div>
-            <div class="push-notif-body">Se detecto una infraccion. Toca para ver opciones de pago con descuento.</div>
+            <div class="push-notif-app">Transitar</div>
+            <div class="push-notif-title" id="push-title">Tu reporte fue confirmado por la comunidad</div>
+            <div class="push-notif-body" id="push-body">Sumaste +10 pts a tu TScore.</div>
         </div>
         <div class="push-notif-time">ahora</div>
     </div>
@@ -3662,6 +3948,12 @@
         document.getElementById('emergency-action').style.display = conductorOnly ? 'block' : 'none';
         document.getElementById('nav-trip').style.display = conductorOnly ? 'flex' : 'none';
         document.getElementById('profile-patente-card').style.display = conductorOnly ? 'block' : 'none';
+
+        // TScore comunitario
+        setReviewMode('neg');
+        renderPointsTables();
+        renderReceivedReviews();
+        updateScoreUI();
     }
 
     // === FUNCION: Sacar foto (simulado) ===
@@ -3777,31 +4069,273 @@
         showToast('📍 Ubicación registrada en el mapa');
     }
 
-    // === FUNCION: Seleccionar tipo de infraccion ===
+    // === FUNCION: Marcar/desmarcar chip (dias de la cochera) ===
     function toggleChip(el) {
         el.classList.toggle('selected');
     }
 
-    // === FUNCION: Enviar denuncia ===
+    // =============================================
+    // TSCORE COMUNITARIO
+    // Las reseñas no generan multas: suman o restan
+    // puntos al TScore de la patente calificada.
+    // =============================================
+
+    // Comportamientos negativos (resta al conductor calificado)
+    const NEG_CATS = [
+        { name: 'Bloqueo de rampa de discapacidad',             icon: '♿', pts: -25, sev: 'grave' },
+        { name: 'Cruce de semáforo en rojo',                    icon: '🚦', pts: -20, sev: 'grave' },
+        { name: 'Conducción peligrosa / maniobras bruscas',     icon: '⚠️', pts: -20, sev: 'grave' },
+        { name: 'Exceso de velocidad en zona residencial',      icon: '🏎️', pts: -18, sev: 'grave' },
+        { name: 'Mal estacionamiento (doble fila, obstrucción)', icon: '🅿️', pts: -15, sev: 'media' },
+        { name: 'Estacionamiento en lugar prohibido',           icon: '🚫', pts: -15, sev: 'media' },
+        { name: 'No ceder el paso a peatón en senda',           icon: '🚶', pts: -12, sev: 'media' },
+        { name: 'Uso del celular al volante',                   icon: '📱', pts: -12, sev: 'media' },
+        { name: 'Patente defectuosa / ilegible',                icon: '🔢', pts: -10, sev: 'leve' },
+        { name: 'Bocina excesiva / conducta agresiva',          icon: '📢', pts: -8,  sev: 'leve' }
+    ];
+
+    // Buen comportamiento (quien califica suma +3)
+    const POS_CATS = [
+        { name: 'Cedió el paso a un peatón',      icon: '🚶' },
+        { name: 'Manejo prudente y respetuoso',   icon: '🙌' },
+        { name: 'Estacionó correctamente',        icon: '🅿️' },
+        { name: 'Cortesía con otros conductores', icon: '🤝' }
+    ];
+
+    // Problemas urbanos (quien reporta suma +8 al confirmarse)
+    const URB_CATS = [
+        { name: 'Bache',                     icon: '🕳️' },
+        { name: 'Semáforo roto',             icon: '🚦' },
+        { name: 'Señal caída o ilegible',    icon: '🪧' },
+        { name: 'Luminaria apagada',         icon: '💡' }
+    ];
+
+    // Tabla de puntos positivos (para la pantalla Mi TScore)
+    const POS_TABLE = [
+        { name: 'Jornada sin incidentes (por día activo)',        pts: 5,  tag: 'AUTOMÁTICO' },
+        { name: 'Semana sin infracciones ni reseñas negativas',   pts: 20, tag: 'AUTOMÁTICO' },
+        { name: 'Mes completo en verde',                          pts: 80, tag: 'BONUS' },
+        { name: 'Reseña comunitaria válida (confirmada)',         pts: 10, tag: 'COMUNIDAD' },
+        { name: 'Reseña de bache / problema urbano (confirmada)', pts: 8,  tag: 'COMUNIDAD' },
+        { name: 'Calificar positivamente a otro conductor',       pts: 3,  tag: 'COMUNIDAD' },
+        { name: '30 días seguidos usando la app',                 pts: 15, tag: 'FIDELIDAD' }
+    ];
+
+    // Reseñas que recibio la patente del usuario (demo)
+    const RECEIVED_REVIEWS = [
+        { cat: 'Mal estacionamiento (doble fila, obstrucción)', icon: '🅿️', pts: -15, sev: 'media',
+          loc: 'Av. San Martín 2400, Caseros', date: '12/11/2026', status: 'ok' },
+        { cat: 'Cedió el paso a un peatón', icon: '🚶', pts: 0, sev: 'info',
+          loc: 'Av. Urquiza 4800, Caseros', date: '09/11/2026', status: 'pos' },
+        { cat: 'Bocina excesiva / conducta agresiva', icon: '📢', pts: -8, sev: 'leve',
+          loc: 'Av. Gral. Paz y Av. San Martín', date: 'Ayer', status: 'pending' },
+        { cat: 'Patente defectuosa / ilegible', icon: '🔢', pts: -10, sev: 'leve',
+          loc: 'Ciudad Jardín, Tres de Febrero', date: '28/10/2026', status: 'rejected' }
+    ];
+
+    let reviewMode = 'neg';      // 'neg' | 'pos' | 'urb'
+    let selectedCategory = null; // indice de la categoria elegida
+    let reviewsSent = 7;
+
+    // --- Nivel y peso de voz segun el TScore ---
+    function getLevel(score) {
+        if (score >= 600) return { n: 3, name: 'Referente', mult: '1.0×', min: 600, next: null,
+            text: 'Tu reseña tiene impacto total e inmediato. Sos validador natural de la comunidad.' };
+        if (score >= 200) return { n: 2, name: 'Activo', mult: '0.7×', min: 200, next: 600,
+            text: 'Tu reseña tiene impacto parcial inmediato y se completa si otro usuario Nivel 2 o 3 la confirma.' };
+        return { n: 1, name: 'Nuevo', mult: '0.3×', min: 0, next: 200,
+            text: 'Tu reseña queda en espera hasta que un usuario Nivel 2 o 3 la confirme (7 días).' };
+    }
+
+    // --- Refrescar todos los lugares donde se ve el TScore ---
+    function updateScoreUI() {
+        const lv = getLevel(userPoints);
+        const label = `Nivel ${lv.n} · ${lv.name}`;
+        document.getElementById('home-points').textContent = userPoints;
+        document.getElementById('home-level').textContent = `${label} — peso de voz ${lv.mult}`;
+        document.getElementById('points-total').textContent = userPoints;
+        document.getElementById('points-level').textContent = label;
+        document.getElementById('profile-tscore').textContent = userPoints;
+        document.getElementById('profile-level').textContent = '· ' + label;
+        document.getElementById('vw-mult').textContent = lv.mult;
+        document.getElementById('vw-text').innerHTML = `<strong>Tu peso de voz: ${label}.</strong><br>${lv.text}`;
+        [1, 2, 3].forEach(n => document.getElementById('lv-card-' + n).classList.toggle('current', n === lv.n));
+
+        const fill = document.getElementById('level-progress-fill');
+        const next = document.getElementById('level-next');
+        if (lv.next) {
+            const pct = Math.round((userPoints - lv.min) / (lv.next - lv.min) * 100);
+            fill.style.width = pct + '%';
+            next.textContent = `Te faltan ${lv.next - userPoints} pts para Nivel ${lv.n + 1}`;
+        } else {
+            fill.style.width = '100%';
+            next.textContent = 'Nivel máximo alcanzado 🏅';
+        }
+        renderRanking();
+    }
+
+    // --- Cambiar entre mal manejo / buen manejo / problema urbano ---
+    function setReviewMode(mode) {
+        reviewMode = mode;
+        selectedCategory = null;
+        document.querySelectorAll('.review-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+        document.getElementById('review-patente-block').style.display = mode === 'urb' ? 'none' : 'block';
+        document.getElementById('review-cat-title').textContent =
+            mode === 'neg' ? '¿Qué comportamiento viste?' :
+            mode === 'pos' ? '¿Qué hizo bien?' : '¿Qué problema encontraste?';
+        renderReviewCategories();
+    }
+
+    function renderReviewCategories() {
+        const list = reviewMode === 'neg' ? NEG_CATS : reviewMode === 'pos' ? POS_CATS : URB_CATS;
+        document.getElementById('review-categories').innerHTML = list.map((c, i) => {
+            let right;
+            if (reviewMode === 'neg') {
+                right = `<span class="sev-badge ${c.sev}">${c.sev.toUpperCase()}</span><span class="cat-pts neg">${c.pts}</span>`;
+            } else {
+                right = `<span class="cat-pts pos">+${reviewMode === 'pos' ? 3 : 8} vos</span>`;
+            }
+            return `<div class="category-item${i === selectedCategory ? ' selected' : ''}" onclick="selectCategory(${i})">
+                <span style="font-size:20px;">${c.icon}</span><span class="cat-name">${c.name}</span>${right}</div>`;
+        }).join('');
+    }
+
+    function selectCategory(i) {
+        selectedCategory = i;
+        renderReviewCategories();
+    }
+
+    // --- Tablas de puntos y ranking (pantalla Mi TScore) ---
+    function renderPointsTables() {
+        document.getElementById('pts-table-pos').innerHTML = POS_TABLE.map(r =>
+            `<div class="pts-row"><span class="pr-name">${r.name}</span><span class="sev-badge info">${r.tag}</span><span class="pr-pts" style="color:var(--accent-dark);">+${r.pts}</span></div>`
+        ).join('');
+        document.getElementById('pts-table-neg').innerHTML = NEG_CATS.map(r =>
+            `<div class="pts-row"><span class="pr-name">${r.name}</span><span class="sev-badge ${r.sev}">${r.sev.toUpperCase()}</span><span class="pr-pts" style="color:var(--danger);">${r.pts}</span></div>`
+        ).join('') +
+            `<div class="pts-row"><span class="pr-name">Reseña falsa enviada (penalidad a quien reporta)</span><span class="sev-badge grave">GRAVE</span><span class="pr-pts" style="color:var(--danger);">-30</span></div>` +
+            `<div class="pts-row" style="font-size:11px; color:var(--gray);">Solo restan si la reseña es validada por el bot y/o confirmada por usuarios con peso de voz suficiente.</div>`;
+    }
+
+    function renderRanking() {
+        const top = [['Martín G.', 984], ['Lucía R.', 951], ['Federico P.', 927]];
+        const me = (userName || 'Vos').split(' ')[0];
+        document.getElementById('ranking-list').innerHTML =
+            top.map((r, i) => `<div class="ranking-item"><div class="rk-pos">${['🥇','🥈','🥉'][i]}</div><span class="rk-name">${r[0]}</span><span class="rk-score">${r[1]}</span></div>`).join('') +
+            `<div class="ranking-item me"><div class="rk-pos">47</div><span class="rk-name">${escapeHtml(me)} (vos)</span><span class="rk-score">${userPoints}</span></div>`;
+    }
+
+    // --- Reseñas recibidas sobre mi patente ---
+    function renderReceivedReviews() {
+        const meta = {
+            ok:       { cls: 'neg',  txt: '✓ Validada por la comunidad' },
+            pos:      { cls: 'pos',  txt: '👍 Reseña positiva' },
+            pending:  { cls: 'pend', txt: '⏳ En chequeo · todavía sin efecto' },
+            rejected: { cls: 'pend', txt: '✕ Desestimada · sin efecto' }
+        };
+        document.getElementById('received-reviews').innerHTML = RECEIVED_REVIEWS.map((r, i) => {
+            const m = meta[r.status];
+            const pts = r.status === 'ok' ? `<span class="rv-pts" style="color:var(--danger);">${r.pts}</span>`
+                      : r.status === 'pos' ? `<span class="rv-pts" style="color:var(--accent-dark);">👍</span>`
+                      : `<span class="rv-pts" style="color:var(--brand-gray);">0</span>`;
+            return `<div class="review-item" onclick="openReceivedReview(${i})">
+                <div class="rv-icon ${m.cls}">${r.icon}</div>
+                <div class="rv-info"><div class="rv-title">${r.cat}</div><div class="rv-meta">${m.txt} · ${r.date}</div></div>
+                ${pts}</div>`;
+        }).join('');
+    }
+
+    function openReceivedReview(i) {
+        const r = RECEIVED_REVIEWS[i];
+        const isPos = r.status === 'pos';
+        document.getElementById('rr-icon').textContent = r.icon;
+        document.getElementById('rr-title').textContent = isPos ? 'Te calificaron positivamente' : 'Calificaron tu patente';
+        document.getElementById('rr-impact').textContent =
+            r.status === 'ok' ? `${r.pts} pts` : isPos ? '👍' : 'Sin efecto';
+        document.getElementById('rr-sub').textContent =
+            r.status === 'ok' ? 'Validada por el bot y confirmada por la comunidad' :
+            r.status === 'pending' ? 'En chequeo: todavía no afecta tu TScore' :
+            r.status === 'rejected' ? 'La comunidad la desestimó' : 'Suma a tu reputación vial';
+        document.getElementById('alert-infraction-type').textContent = r.cat;
+        document.getElementById('alert-severity').textContent = r.sev === 'info' ? 'POSITIVA' : r.sev.toUpperCase();
+        document.getElementById('alert-location').textContent = r.loc;
+        document.getElementById('alert-date').textContent = r.date;
+        const pill = document.getElementById('alert-pill');
+        const statusTxt = {
+            ok: ['ok', '✓ Validada por el bot · 2 confirmaciones de la comunidad', '✓ Validada'],
+            pos: ['ok', '✓ Reseña positiva registrada', '✓ Registrada'],
+            pending: ['pending', '⏳ Reseña lista para chequeo', '⏳ En chequeo'],
+            rejected: ['bad', '✕ Desestimada por la comunidad', '✕ Desestimada']
+        }[r.status];
+        pill.className = 'status-pill ' + statusTxt[0];
+        pill.textContent = statusTxt[1];
+        document.getElementById('alert-status').textContent = statusTxt[2];
+        showScreen('infraction-alert');
+    }
+
+    function requestReviewCheck() {
+        showModal('Revisión solicitada',
+            'El bot y usuarios Nivel 3 (Referentes) van a revisar la reseña. Si se desestima, recuperás los puntos y quien la envió recibe −30 pts por reseña falsa.');
+    }
+
+    // --- Agregar un movimiento al historial de puntos ---
+    function addPointsHistory(icon, title, pts) {
+        const item = document.createElement('div');
+        item.className = 'points-history-item';
+        item.innerHTML = `<div class="points-history-icon reported">${icon}</div>
+            <div class="points-history-info"><div class="title">${escapeHtml(title)}</div><div class="date">Ahora</div></div>
+            <div class="points-history-amount">+${pts}</div>`;
+        document.getElementById('points-history-dynamic').prepend(item);
+    }
+
+    // === FUNCION: Enviar reseña ===
     function submitReport() {
-        // Detectar que tipo de infraccion selecciono
-        const selectedChip = document.querySelector('.infraction-chip.selected');
-        const infractionType = selectedChip ? selectedChip.textContent : 'Otra';
+        const patente = document.getElementById('review-patente').value.trim().toUpperCase();
+        if (reviewMode !== 'urb' && patente.replace(/\s/g, '').length < 6) {
+            showModal('Falta la patente', 'Ingresá la patente del vehículo que querés calificar.');
+            return;
+        }
+        if (selectedCategory === null) {
+            showModal('Elegí una categoría', 'Seleccioná qué comportamiento o problema viste.');
+            return;
+        }
 
-        showModal(
-            '¡Denuncia enviada!',
-            'Tu denuncia fue registrada exitosamente. Será derivada al municipio correspondiente, que notificará a la aseguradora del vehículo. ¡Gracias por colaborar con la seguridad vial! 🚦'
-        );
+        const list = reviewMode === 'neg' ? NEG_CATS : reviewMode === 'pos' ? POS_CATS : URB_CATS;
+        const cat = list[selectedCategory];
+        const reward = reviewMode === 'neg' ? 10 : reviewMode === 'pos' ? 3 : 8;
+        const lv = getLevel(userPoints);
 
-        // Simular que 5 segundos despues, al "otro conductor" le llega
-        // la notificacion de su aseguradora (en la demo, te llega a vos)
+        // Confirmacion inmediata: la reseña queda en estado de chequeo
+        showModal('Reseña enviada', '');
+        document.getElementById('modal-text').innerHTML =
+            `<div class="status-pill pending">⏳ Reseña lista para chequeo</div>` +
+            `<div class="status-pill ok">✓ Gracias por colaborar con TRANSITAR</div>` +
+            `<span style="font-size:12px; color:var(--gray);">${reviewMode === 'urb' ? escapeHtml(cat.name) : escapeHtml(patente) + ' · ' + escapeHtml(cat.name)}<br>` +
+            `Peso de voz: ${lv.mult}. Te avisamos cuando la comunidad la confirme.</span>`;
+
+        reviewsSent++;
+        document.getElementById('profile-reviews').textContent = reviewsSent;
+
+        // Simulacion: el bot valida y la comunidad confirma unos segundos despues
         setTimeout(() => {
-            showPushNotification(infractionType);
-        }, 5000);
-        // Resetear la pantalla de denuncia
+            userPoints += reward;
+            updateScoreUI();
+            addPointsHistory(cat.icon,
+                reviewMode === 'urb' ? 'Problema urbano confirmado' :
+                reviewMode === 'pos' ? 'Calificaste positivamente a otro conductor' : 'Reseña confirmada por la comunidad',
+                reward);
+            showPushNotification(
+                reviewMode === 'pos' ? 'Tu calificación fue registrada' : 'Tu reporte fue confirmado por la comunidad',
+                `Sumaste +${reward} pts a tu TScore. Ya tenés ${userPoints}.`);
+        }, 6000);
+
+        // Resetear la pantalla de reseña
         setTimeout(() => {
+            document.getElementById('review-patente').value = '';
+            document.getElementById('review-comment').value = '';
+            setReviewMode(reviewMode);
             document.getElementById('camera-area').classList.remove('has-photo');
-            document.getElementById('camera-text').textContent = 'Toca para sacar foto';
+            document.getElementById('camera-text').textContent = 'Agregar foto (opcional)';
             // Resetear el mapa: quitar el marcador y el estado
             if (reportMarker && reportMap) {
                 reportMap.removeLayer(reportMarker);
@@ -3811,7 +4345,6 @@
             status.className = 'map-status waiting';
             document.getElementById('map-status-text').textContent = 'Toca el mapa para marcar la ubicación';
             document.getElementById('map-address').textContent = '';
-            document.querySelectorAll('.infraction-chip').forEach(c => c.classList.remove('selected'));
         }, 500);
     }
 
@@ -3859,26 +4392,13 @@
 
             // Sumar puntos
             userPoints += 10;
-            document.getElementById('home-points').textContent = userPoints;
-            document.getElementById('points-total').textContent = userPoints;
+            updateScoreUI();
 
             showModal(
                 '¡Viaje completado! 🎉',
                 `Duración: ${document.getElementById('trip-timer').textContent}\n\n¡Sumaste +10 puntos por conducir sin usar el celular! Ya tenés ${userPoints} puntos.`
             );
         }
-    }
-
-    // === FUNCION: Pagar deuda (simulado) ===
-    function payDebt(btn) {
-        const item = btn.closest('.debt-item');
-        showModal('Redirigiendo al pago...', 'Serás redirigido a la plataforma de pago del municipio correspondiente.');
-        setTimeout(() => {
-            item.style.opacity = '0.4';
-            btn.textContent = 'Pagado ✓';
-            btn.disabled = true;
-            btn.style.background = 'var(--accent)';
-        }, 300);
     }
 
     // === FUNCION: Contactos de emergencia ===
@@ -3914,170 +4434,20 @@
     }
 
     // =============================================
-    // SISTEMA DE SEGUROS & NOTIFICACIONES
-    // Flujo: Denuncia → Municipio → Aseguradora → Conductor
+    // NOTIFICACIONES PUSH (simuladas)
+    // Cierre del loop: "Tu reporte fue confirmado por la comunidad"
     // =============================================
-
-    let selectedPaymentOption = 'instant'; // 'instant' o 'deferred'
-    let offerTimerInterval = null;         // Timer de la oferta con descuento
-    let offerTimerSeconds = 30 * 60;       // 30 minutos para decidir
-    let currentFineAmount = 45000;         // Monto base de la multa
-    let currentDiscountPercent = 50;       // Porcentaje de descuento
-
-    // Lista de aseguradoras argentinas (simulado)
-    const insuranceCompanies = [
-        'La Segunda Seguros',
-        'Seguros Rivadavia',
-        'Federacion Patronal',
-        'Sancor Seguros',
-        'Zurich Argentina',
-        'Mapfre Argentina',
-        'La Caja Seguros',
-        'Provincia Seguros'
-    ];
-
-    // Tipos de infraccion con sus montos de multa
-    const fineAmounts = {
-        'Estacionamiento prohibido': 28000,
-        'Doble fila': 35000,
-        'Semaforo en rojo': 45000,
-        'Exceso de velocidad': 55000,
-        'Uso de celular': 40000,
-        'Sin cinturon': 25000,
-        'Senda peatonal': 30000,
-        'Otra': 20000
-    };
-
-    // --- Mostrar notificacion push ---
-    // Se llama cuando alguien envia una denuncia (simulado)
-    function showPushNotification(infractionType) {
+    function showPushNotification(title, body) {
         const notif = document.getElementById('push-notification');
-        // Elegir aseguradora aleatoria para la demo
-        const insurance = insuranceCompanies[Math.floor(Math.random() * insuranceCompanies.length)];
-        document.querySelector('.push-notif-app').textContent = `Transitar via ${insurance}`;
-
-        // Mostrar con animacion (desliza desde arriba)
+        document.getElementById('push-title').textContent = title;
+        document.getElementById('push-body').textContent = body;
         notif.classList.add('visible');
-
-        // Guardar datos para cuando el usuario toque la notificacion
-        notif.dataset.infractionType = infractionType || 'Doble fila';
-        notif.dataset.insurance = insurance;
-
-        // Ocultar despues de 8 segundos si no la toca
-        setTimeout(() => {
-            notif.classList.remove('visible');
-        }, 8000);
+        setTimeout(() => notif.classList.remove('visible'), 8000);
     }
 
-    // --- Abrir alerta de infraccion ---
-    // Se llama cuando el usuario toca la notificacion push
-    function openInfractionAlert() {
-        const notif = document.getElementById('push-notification');
-        notif.classList.remove('visible');
-
-        const infractionType = notif.dataset.infractionType || 'Doble fila';
-        const insurance = notif.dataset.insurance || 'La Segunda Seguros';
-        const fineAmount = fineAmounts[infractionType] || 35000;
-        const discountedAmount = Math.round(fineAmount * (1 - currentDiscountPercent / 100));
-
-        // Llenar datos de la pantalla
-        document.getElementById('alert-infraction-type').textContent = infractionType;
-        document.getElementById('alert-fine-amount').textContent = `$${fineAmount.toLocaleString('es-AR')}`;
-        document.getElementById('alert-insurance-name').textContent = insurance;
-        currentFineAmount = fineAmount;
-
-        // Hora actual
-        const now = new Date();
-        document.getElementById('alert-time').textContent =
-            now.getHours().toString().padStart(2,'0') + ':' +
-            now.getMinutes().toString().padStart(2,'0');
-
-        // Actualizar precios en las opciones
-        updatePaymentPrices();
-
-        // Resetear seleccion
-        selectPaymentOption('instant');
-
-        // Iniciar timer de la oferta (30 minutos)
-        offerTimerSeconds = 30 * 60;
-        clearInterval(offerTimerInterval);
-        offerTimerInterval = setInterval(() => {
-            offerTimerSeconds--;
-            if (offerTimerSeconds <= 0) {
-                clearInterval(offerTimerInterval);
-                document.getElementById('insurance-offer-timer').textContent = '00:00';
-                // Se vencio la oferta, solo queda pago total
-                selectPaymentOption('deferred');
-                document.getElementById('pay-option-instant').style.opacity = '0.4';
-                document.getElementById('pay-option-instant').style.pointerEvents = 'none';
-                return;
-            }
-            const m = String(Math.floor(offerTimerSeconds / 60)).padStart(2, '0');
-            const s = String(offerTimerSeconds % 60).padStart(2, '0');
-            document.getElementById('insurance-offer-timer').textContent = `${m}:${s}`;
-        }, 1000);
-
-        showScreen('infraction-alert');
-    }
-
-    // --- Actualizar precios segun el descuento ---
-    function updatePaymentPrices() {
-        const discountedAmount = Math.round(currentFineAmount * (1 - currentDiscountPercent / 100));
-
-        // Opcion instantanea
-        const instantOption = document.getElementById('pay-option-instant');
-        instantOption.querySelector('.option-price').innerHTML =
-            `$${discountedAmount.toLocaleString('es-AR')}` +
-            `<span class="option-original">$${currentFineAmount.toLocaleString('es-AR')}</span>` +
-            `<span class="discount-badge">-${currentDiscountPercent}%</span>`;
-
-        // Opcion diferida
-        const deferredOption = document.getElementById('pay-option-deferred');
-        deferredOption.querySelector('.option-price').textContent =
-            `$${currentFineAmount.toLocaleString('es-AR')}`;
-    }
-
-    // --- Seleccionar opcion de pago ---
-    function selectPaymentOption(option) {
-        selectedPaymentOption = option;
-        const instant = document.getElementById('pay-option-instant');
-        const deferred = document.getElementById('pay-option-deferred');
-        const btn = document.getElementById('infraction-pay-btn');
-
-        instant.classList.toggle('selected', option === 'instant');
-        deferred.classList.toggle('selected', option === 'deferred');
-
-        if (option === 'instant') {
-            const discountedAmount = Math.round(currentFineAmount * (1 - currentDiscountPercent / 100));
-            btn.innerHTML = `⚡ Pagar $${discountedAmount.toLocaleString('es-AR')} ahora`;
-            btn.className = 'btn btn-accent';
-        } else {
-            btn.innerHTML = `📄 Diferir $${currentFineAmount.toLocaleString('es-AR')} a factura`;
-            btn.className = 'btn btn-primary';
-        }
-    }
-
-    // --- Procesar pago de infraccion ---
-    function processInfractionPayment() {
-        clearInterval(offerTimerInterval);
-
-        if (selectedPaymentOption === 'instant') {
-            const discountedAmount = Math.round(currentFineAmount * (1 - currentDiscountPercent / 100));
-            showScreen('home');
-            showModal(
-                '¡Pago realizado! ✓',
-                `Pagaste $${discountedAmount.toLocaleString('es-AR')} (${currentDiscountPercent}% de descuento).\n\n` +
-                `El pago se proceso a traves de tu aseguradora. La multa queda saldada y no se suma a tu historial de infracciones.\n\n` +
-                `Ahorraste $${(currentFineAmount - discountedAmount).toLocaleString('es-AR')} por pagar al instante.`
-            );
-        } else {
-            showScreen('home');
-            showModal(
-                'Pago diferido registrado',
-                `Se agrego $${currentFineAmount.toLocaleString('es-AR')} a tu proxima factura del seguro.\n\n` +
-                `La infraccion queda registrada en tu historial. Podias haber ahorrado pagando al instante.`
-            );
-        }
+    function onPushClick() {
+        document.getElementById('push-notification').classList.remove('visible');
+        showScreen('points');
     }
 
     // =============================================

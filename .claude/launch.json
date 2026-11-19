@@ -4,7 +4,7 @@
     {
       "name": "transit-app",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "3000", "C:/Users/Lisandro/Documents/Proyectos/transit-app"],
+      "runtimeArgs": ["serve", "-l", "3000", "C:/Users/lichu/Documents/Proyectos/transit-app"],
       "port": 3000
     }
   ]

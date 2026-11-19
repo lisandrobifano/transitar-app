@@ -1,3 +1,13 @@
 node_modules/
 ~$*
 *.tmp
+
+# Documentos de negocio (el repo es publico: no subir)
+*.pdf
+*.pptx
+*.xlsx
+*.docx
+*.zip
+marca/
+Valuación/
+modelo_estacionamiento.py
